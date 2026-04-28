@@ -1,0 +1,9 @@
+^LICENSE\.md$
+^doc$
+^Meta$
+^vignettes/.*\.pdf$
+^vignettes/.*\.log$
+^vignettes/.*\.tex$
+^vignettes/.*_files$
+^cran-comments\.md$
+^\.github$
