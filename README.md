@@ -2,13 +2,17 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/WShi18/MetaHunt/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/WShi18/MetaHunt/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/WShi18/MetaHunt/actions/workflows/pkgdown.yaml/badge.svg)](https://wshi18.github.io/MetaHunt/)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
 **MetaHunt** is an R package for privacy-preserving meta-analysis of
 function-valued quantities (e.g. regression functions, conditional
-average treatment effect functions) across heterogeneous studies.
+average treatment effect functions) across heterogeneous studies
+(Shi, Imai, & Zhang 2024, [arXiv:2604.23847](https://arxiv.org/abs/2604.23847)).
+
+Documentation: <https://wshi18.github.io/MetaHunt/>
 
 The package implements the methodology of
 
@@ -83,6 +87,14 @@ intervals (split / cross / pre-fit), and the minimax-regret baseline.
 The individual pipeline building blocks (`dfspa()`,
 `project_to_simplex()`, `fit_weight_model()`, `predict_target()`,
 `apply_wrapper()`) are also exported and can be composed independently.
+
+## Citation
+
+If you use MetaHunt in academic work, please cite:
+
+> Shi, W., Imai, K., and Zhang, Y. (2024). *Privacy-preserving
+> meta-analysis through low-rank basis hunting.* arXiv:2604.23847.
+> <https://arxiv.org/abs/2604.23847>
 
 ## Status
 

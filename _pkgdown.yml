@@ -1,0 +1,115 @@
+url: https://wshi18.github.io/MetaHunt/
+
+template:
+  bootstrap: 5
+
+home:
+  title: MetaHunt — Privacy-Preserving Meta-Analysis via Low-Rank Basis Hunting
+  description: >
+    Predict function-valued quantities for new target populations
+    from aggregate-level multi-study data, with conformal prediction
+    intervals.
+  links:
+  - text: Read the paper (arXiv:2604.23847)
+    href: https://arxiv.org/abs/2604.23847
+  - text: Report a bug
+    href: https://github.com/WShi18/MetaHunt/issues
+
+development:
+  mode: auto
+
+navbar:
+  structure:
+    left:  [intro, articles, reference, news]
+    right: [search, github]
+  components:
+    intro:
+      text: Get Started
+      href: articles/get-started.html
+    articles:
+      text: Tutorials
+      menu:
+      - text: An introduction to MetaHunt
+        href: articles/metahunt-intro.html
+      - text: 'Preparing your data: from fitted models to F_hat'
+        href: articles/data-prep.html
+      - text: Understanding grid_weights and the L²(μ) norm
+        href: articles/grid-weights.html
+      - text: Choosing K and the denoising parameters
+        href: articles/choosing-k-denoising.html
+      - text: Conformal prediction with different choices
+        href: articles/conformal-prediction.html
+      - text: Scalar summaries with wrapper
+        href: articles/wrapper-scalar.html
+      - text: When to prefer minmax_regret
+        href: articles/minmax-baseline.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    news:
+      text: Changelog
+      href: news/index.html
+
+articles:
+- title: Get started
+  navbar: ~
+  contents:
+  - get-started
+- title: Tutorials
+  navbar: Tutorials
+  contents:
+  - metahunt-intro
+  - data-prep
+  - grid-weights
+  - choosing-k-denoising
+  - conformal-prediction
+  - wrapper-scalar
+  - minmax-baseline
+
+reference:
+- title: End-to-end fitter
+  desc: One-call interface; covers the full pipeline.
+  contents:
+  - metahunt
+  - predict.metahunt
+  - summary.metahunt
+  - print.summary.metahunt
+  - plot.metahunt
+- title: Conformal prediction
+  desc: Distribution-free prediction intervals around the target function.
+  contents:
+  - split_conformal
+  - cross_conformal
+  - conformal_from_fit
+  - coverage
+  - summary.metahunt_conformal
+  - plot.metahunt_conformal
+- title: Rank and tuning selection
+  desc: Diagnostics for choosing the number of bases K and the d-fSPA denoising knobs.
+  contents:
+  - reconstruction_error_curve
+  - cv_error_curve
+  - select_denoising_params
+  - print.metahunt_denoising_search
+- title: Pipeline building blocks
+  desc: Lower-level primitives that can be composed independently.
+  contents:
+  - dfspa
+  - project_to_simplex
+  - fit_weight_model
+  - predict.metahunt_weight_model
+  - coef.metahunt_weight_model
+  - predict_target
+  - apply_wrapper
+- title: Data preparation
+  desc: Onramp from fitted-model lists to MetaHunt's matrix inputs.
+  contents:
+  - build_grid
+  - f_hat_from_models
+- title: Baselines
+  desc: Covariate-free worst-case-regret aggregator (Zhang, Huang & Imai 2024).
+  contents:
+  - minmax_regret
+- title: Package
+  contents:
+  - MetaHunt-package

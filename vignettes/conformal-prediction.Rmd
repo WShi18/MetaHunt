@@ -1,0 +1,170 @@
+---
+title: "Conformal prediction with different choices"
+output:
+  rmarkdown::html_vignette: default
+vignette: >
+  %\VignetteIndexEntry{Conformal prediction with different choices}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r cp-knit-opts, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6, fig.height = 4,
+  fig.align = "center"
+)
+```
+
+```{r setup}
+library(MetaHunt)
+set.seed(1)
+```
+
+This vignette covers the three conformal-prediction interfaces
+exported by MetaHunt. The validity of all three rests on the
+exchangeability assumption A3 in
+`vignette("metahunt-intro", package = "MetaHunt")` §"Key
+assumptions"; we do not re-derive it here.
+
+## Why conformal prediction here
+
+Conformal prediction wraps any black-box prediction rule and
+produces a band around its forecast that, on average across new
+studies, will contain the truth at least `(1 - alpha)` of the time.
+The key word is *marginal*: the guarantee is over the random draw
+of the new study, not conditional on a specific covariate value.
+All you need is for the calibration data to be exchangeable with
+the new study (assumption A3) — no distributional assumptions on
+the noise or on the weight model.
+
+## A small standalone simulation
+
+```{r cp-simulate}
+# m = 80 is large enough that with cal_frac = 0.5 and alpha = 0.05 the conformal quantile is finite.
+m <- 80; G <- 20; K_true <- 3
+x <- seq(0, 1, length.out = G)
+basis <- rbind(sin(pi * x), cos(pi * x), x)
+W <- data.frame(w1 = rnorm(m), w2 = rnorm(m))
+beta <- cbind(c(1, -0.8), c(-0.5, 1.2), c(0, 0))
+pi_true <- exp(as.matrix(W) %*% beta); pi_true <- pi_true / rowSums(pi_true)
+F_hat <- pi_true %*% basis + matrix(rnorm(m * G, sd = 0.05), m, G)
+```
+
+```{r cp-wnew}
+W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1))
+```
+
+## The three flavours
+
+All three return an object you can plot directly with `plot()`.
+
+| Function | When to use |
+|---|---|
+| `split_conformal()` | Default. One train/calibration split. Fastest; some variance from the random split. |
+| `cross_conformal()` | Many studies, want lower split-induced variance. Refits the pipeline `n_folds + 1` times. |
+| `conformal_from_fit()` | You've already fit a pipeline (e.g. after tuning `K`) and want intervals without refitting. See `?conformal_from_fit`. |
+
+## Split conformal
+
+`split_conformal()` does a single train / calibration split. With
+small `m`, set `cal_frac = 0.5` so the calibration set is large
+enough for the chosen `alpha`.
+
+```{r cp-split-pointwise}
+res_pw <- split_conformal(F_hat, W, W_new, K = K_true, alpha = 0.05,
+                          cal_frac = 0.5, seed = 1,
+                          dfspa_args = list(denoise = FALSE))
+plot(res_pw, target_idx = 1, x_axis = x)
+```
+
+The shaded region is the pointwise 95% conformal band; it has finite width because `n_cal = 40` is large enough for `α = 0.05`.
+
+```{r cp-split-scalar}
+res_scalar <- split_conformal(F_hat, W, W_new, K = K_true,
+                              wrapper = mean, alpha = 0.05,
+                              cal_frac = 0.5, seed = 1,
+                              dfspa_args = list(denoise = FALSE))
+data.frame(prediction = res_scalar$prediction,
+           lower      = res_scalar$lower,
+           upper      = res_scalar$upper)
+```
+
+## Cross conformal
+
+`cross_conformal()` reduces the variance of the band that comes
+from the random split, at the cost of refitting `n_folds + 1`
+times.
+
+```{r cp-cross}
+res_cross <- cross_conformal(F_hat, W, W_new, K = K_true, n_folds = 4,
+                             wrapper = mean, alpha = 0.1, seed = 1,
+                             dfspa_args = list(denoise = FALSE))
+res_cross
+```
+
+## Pre-fit conformal
+
+If you have already run `metahunt()` (for instance after tuning
+`K`) and do not want to refit, `conformal_from_fit()` recycles the
+existing fit to produce calibrated intervals. The example below
+re-uses the training data as the calibration set *for demonstration
+only*; in real use, hold out a separate calibration set so the
+exchangeability argument applies to genuinely unseen studies.
+
+```{r cp-prefit}
+fit <- metahunt(F_hat, W, K = K_true, dfspa_args = list(denoise = FALSE))
+pi_hat <- project_to_simplex(F_hat, fit$dfspa_fit$bases)
+res_pre <- conformal_from_fit(
+  dfspa_fit = fit$dfspa_fit, weight_model = fit$weight_model,
+  F_cal = F_hat, W_cal = W, W_new = W_new,
+  wrapper = mean, alpha = 0.1
+)
+res_pre
+```
+
+## Pointwise vs scalar bands
+
+A pointwise band returns a `(1 - alpha)` interval at each grid
+point but does not give a joint guarantee across grid points: the
+probability that the truth lies inside the entire band
+simultaneously is generally lower than `1 - alpha`. A scalar
+wrapper (e.g. `wrapper = mean`) collapses the function to a single
+number and gives one calibrated interval, which is the right tool
+for joint inferential claims. If you need a joint coverage statement across the grid, either apply a multiple-testing correction (e.g. divide α by `G`) or replace the pointwise band with a scalar wrapper — see `vignette('wrapper-scalar', package = 'MetaHunt')`.
+
+## Small-`m` warning on `cal_frac`
+
+> With too-few calibration studies for the chosen `alpha`, the
+> conformal quantile is `Inf` and intervals are unbounded. The
+> finite-sample formula needs
+> `n_cal >= ceiling((1 - alpha)(n_cal + 1))` calibration studies;
+> below that threshold the package warns and the bands degenerate.
+> Either raise `cal_frac`, raise `alpha`, or switch to
+> `cross_conformal()`.
+
+Below we deliberately reuse only the first 30 of our 80 studies so the calibration set is too small for `α = 0.05`. The package issues a warning and returns `Inf` quantiles; the corresponding intervals are unbounded. The fix is to either supply more studies, raise `α`, or raise `cal_frac`.
+
+```{r cp-small-m-warning, warning = TRUE}
+m_small <- 30  # too small for alpha = 0.05 with cal_frac = 0.5
+F_small <- F_hat[1:m_small, , drop = FALSE]
+W_small <- W[1:m_small, , drop = FALSE]
+res_inf <- split_conformal(F_small, W_small, W_new, K = K_true,
+                           alpha = 0.05, cal_frac = 0.5, seed = 1,
+                           dfspa_args = list(denoise = FALSE))
+res_inf$quantile        # Inf — quantile is unbounded
+range(res_inf$lower)    # -Inf
+range(res_inf$upper)    #  Inf
+```
+
+## See also
+
+- `vignette("metahunt-intro", package = "MetaHunt")` — pipeline
+  context and the A3 exchangeability assumption.
+- `?split_conformal` — single-split conformal calibration.
+- `?cross_conformal` — cross-fitting conformal calibration.
+- `?conformal_from_fit` — calibration using an existing fit.
+- `?coverage` — empirical coverage diagnostics for conformal bands.
+- `?plot.metahunt_conformal` — plotting method for the returned
+  objects.

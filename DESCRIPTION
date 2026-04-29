@@ -25,10 +25,11 @@ Imports:
     grDevices,
     withr
 Suggests:
+    grf,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: https://github.com/WShi18/MetaHunt
+URL: https://github.com/WShi18/MetaHunt, https://wshi18.github.io/MetaHunt/, https://arxiv.org/abs/2604.23847
 BugReports: https://github.com/WShi18/MetaHunt/issues
 VignetteBuilder: knitr

@@ -7,3 +7,5 @@
 ^vignettes/.*_files$
 ^cran-comments\.md$
 ^\.github$
+^_pkgdown\.yml$
+^docs$

@@ -1,18 +1,14 @@
 ---
-title: "Getting started with MetaHunt"
+title: "An introduction to MetaHunt"
 output:
   rmarkdown::html_vignette: default
-  pdf_document:
-    latex_engine: xelatex
-    toc: true
-    number_sections: false
 vignette: >
-  %\VignetteIndexEntry{Getting started with MetaHunt}
+  %\VignetteIndexEntry{An introduction to MetaHunt}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r intro-knitr-opts, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -26,167 +22,142 @@ library(MetaHunt)
 set.seed(1)
 ```
 
-## What MetaHunt does
+## The problem: function-valued meta-analysis
 
-You have several **studies** (trial centres, cohorts, sites). Each study
-has produced a **fitted model** for some function of patient-level
-covariates — a regression function, a CATE function, a dose–response
-curve. You also have **study-level metadata** for each study (region,
-sample composition, year, …).
+You have several **studies** — trial centres, cohorts, sites — and each
+one has produced a fitted model for some function of patient-level
+covariates. That function might be a regression curve, a CATE, or a
+dose-response curve. You also have **study-level metadata** for each
+study: region, sample composition, year, and so on. You want to predict
+that function for a *new* study, characterised only by its metadata,
+together with a prediction band, and you want to do it without ever
+pooling patient-level data across studies.
 
-You want to **predict that function for a new study** characterised only
-by its metadata, with a 95% prediction band, *without ever pooling
-patient-level data across studies*.
+MetaHunt is designed for exactly that workflow. It assumes a small
+number of latent **basis functions** drive cross-study heterogeneity,
+recovers them from the per-study estimates, and learns how the mixing
+weights depend on study-level metadata. The result is a single fitted
+object that you can `predict()` for new metadata and combine with
+conformal prediction for uncertainty quantification. If you would
+rather see one short example before reading the full pipeline, start
+with `vignette("get-started", package = "MetaHunt")`.
 
-MetaHunt does this in three steps:
+## Key assumptions
 
-1. **Basis hunting** — recover a small set of latent basis functions
-   such that every study's function lies (approximately) in the convex
-   hull of those bases.
-2. **Weight model** — model how the mixing weights over those bases
-   depend on study-level metadata.
-3. **Conformal prediction** — distribution-free prediction intervals
-   for the new study's function.
+The MetaHunt pipeline rests on four assumptions. We state them in
+applied-reader voice; the manuscript contains the formal statements
+and proofs.
 
-This vignette walks through the full pipeline.
+### A1. Low-rank cross-study heterogeneity
 
-## What you need to provide
+We assume the true study-level functions all live inside the convex
+hull of a small number $K$ of shared *latent basis functions*. Each
+study is a convex combination of the bases, with non-negative weights
+that sum to one. Geometrically, every study is a point inside a
+$(K-1)$-simplex whose vertices are the basis functions; the bases are
+identifiable as the vertices of that hull.
 
-Two ingredients drive every function in the package:
+Formally, there exist basis functions $g_1, \ldots, g_K$ with $K < m$ such that, for every study $i \in \{0, 1, \ldots, m\}$,
+$$f^{(i)}(\boldsymbol{x}) \;=\; \sum_{k=1}^{K} \pi_{ik}\, g_k(\boldsymbol{x}), \qquad \boldsymbol{x} \in \mathcal{X},$$
+with weight vector $\boldsymbol{\pi}_i = (\pi_{i1}, \ldots, \pi_{iK})^\top \in \Delta_{K-1}$, the $(K-1)$-simplex. The bases are non-degenerate, i.e. $g_2 - g_1, \ldots, g_K - g_1$ are linearly independent in $L^2(\mu)$.
 
-| Object | Description | Example |
-|---|---|---|
-| `F_hat` | An `m × G` numeric matrix. Row `i` is the function of study `i` evaluated on a *shared* set of `G` patient-level grid points. | `F_hat[i, g]` is the predicted treatment effect for centre `i` at "patient profile" `g`. |
-| `W`     | An `m × p` matrix or data frame of study-level covariates (one row per study). | Region, mean age, percent female, year. |
+*What this buys you:* the entire $m$-by-grid table of study functions
+collapses to $K$ shared shapes plus an $m$-by-$K$ table of weights, so
+heterogeneity becomes low-dimensional and shareable.
 
-Many users start with **fitted model objects** (e.g. random forests),
-not `F_hat`. The next section shows how to build `F_hat` from such a
-list.
+### A2. Weight model
 
-## Preparing your data: from fitted models to `F_hat`
+The mixing weight $\boldsymbol{\pi}_i$ for study $i$ is drawn from
+some conditional distribution given that study's covariates
+$\boldsymbol{W}_i$. The distribution can be anything you can
+estimate — a Dirichlet regression, an RKHS-Dirichlet, a multinomial
+logit, a nearest-neighbour smoother. MetaHunt does not commit you to a
+specific functional form.
 
-Suppose each centre has shared its fitted model object with you, plus
-some metadata. The two onramp helpers in MetaHunt let you turn this
-into the `(F_hat, W)` pair that the rest of the package consumes.
+Formally, for $i = 0, 1, \ldots, m$, the weight vectors are independent draws
+$$\boldsymbol{\pi}_i \mid \boldsymbol{W}_i \;\stackrel{\text{ind.}}{\sim}\; \mathcal{P}_{\boldsymbol{\pi} \mid \boldsymbol{W}}(\,\cdot \mid \boldsymbol{W}_i),$$
+where $\mathcal{P}_{\boldsymbol{\pi}\mid\boldsymbol{W}}$ is an arbitrary distributional map from the covariate space $\mathcal{W}$ to the simplex $\Delta_{K-1}$.
 
-### Step 1: choose a shared evaluation grid
+*What this buys you:* once you can map metadata to weights, predicting
+the function for a brand-new target population reduces to predicting
+its weights and re-mixing the recovered bases.
 
-The grid is a finite set of patient profiles at which every centre's
-model will be evaluated. Use [`build_grid()`] to construct it from any
-reference patient-level dataset:
+### A3. Exchangeability
 
-```{r build-grid-demo}
-# A reference patient-level dataset (e.g. a target-population sample,
-# or a public dataset like NHANES, or a held-out validation cohort).
-ref <- data.frame(age   = rnorm(500, 60, 10),
-                  bp    = rnorm(500, 130, 15),
-                  bmi   = rnorm(500, 28, 4))
+The studies (including the target) are exchangeable units drawn from a
+common data-generating process: their joint distribution is invariant
+under reordering. This is much weaker than i.i.d. and is the standard
+condition under which conformal prediction is valid.
 
-grid <- build_grid(ref, n_grid = 50, seed = 1)
-head(grid)
-```
+Formally, the site-level covariates $\boldsymbol{W}_0, \boldsymbol{W}_1, \ldots, \boldsymbol{W}_m$ are exchangeable. Combined with A1–A2, this implies that the triples
+$$\bigl(\boldsymbol{W}_i,\, \boldsymbol{\pi}_i,\, f^{(i)}\bigr), \qquad i = 0, 1, \ldots, m,$$
+are jointly exchangeable across $i$.
 
-The grid does **not** have to come from any specific centre — it just
-has to be a representative set of patient profiles in the same
-covariate space your centres' models accept.
+*What this buys you:* the calibration step in conformal prediction
+inherits a finite-sample, distribution-free coverage guarantee with
+no need for parametric error models.
 
-### Step 2: turn each centre's model into a row of `F_hat`
+### A4. Estimation error control
 
-`f_hat_from_models()` calls `predict()` on each model at the shared grid
-and stacks the rows. It dispatches on common model classes:
+Each study reports a noisy version of its true function,
+$\hat f^{(i)} = f^{(i)} + \epsilon^{(i)}$. We assume the within-study
+estimation error vanishes uniformly in the within-study sample size,
+and that the number of studies $m$ does not grow too fast relative to
+those sample sizes. In words: every study should be reasonably
+well-estimated, and you should not have a large number of studies
+whose individual sample sizes $n_i$ are small.
 
-- **`ranger`**: extracts `predict(model, data = grid)$predictions`
-- **`grf::causal_forest`** / **`regression_forest`**: extracts
-  `predict(model, newdata = grid)$predictions`
-- Anything else: falls through to `predict(model, newdata = grid)`
+Formally, write $\hat f^{(i)}(\boldsymbol{x}) = f^{(i)}(\boldsymbol{x}) + \epsilon^{(i)}(\boldsymbol{x})$. We assume
+$$\sup_{\boldsymbol{x} \in \mathcal{X}} \mathbb{E}\!\left[\epsilon^{(i)}(\boldsymbol{x})^2\right] = O\!\left(n_i^{-r}\right) \quad \text{for some } r > 0,$$
+and that $m = o\bigl(\inf_i n_i^{\,a}\bigr)$ for some $0 < a < r$, where $n_i$ is study $i$'s sample size.
 
-For example, with `ranger` (not run here to avoid the dependency):
+*What this buys you:* the noise in $\hat F$ does not accumulate
+through the pipeline, basis recovery is consistent, and conformal
+intervals retain their asymptotic coverage despite a multi-stage
+estimator.
 
-```r
-library(ranger)
-centre_models <- lapply(centre_data_list,
-                        function(d) ranger(y ~ ., data = d))
-F_hat <- f_hat_from_models(centre_models, grid)
-```
+## The three-step pipeline
 
-For `grf::causal_forest`:
+`metahunt()` is a thin wrapper around three exported steps. You can
+also call them individually if you want fine-grained control.
 
-```r
-library(grf)
-centre_models <- lapply(centre_data_list,
-                        function(d) causal_forest(d$X, d$Y, d$W))
-F_hat <- f_hat_from_models(centre_models, grid)
-```
+### Step 1. Basis hunting via d-fSPA
 
-If your models need bespoke prediction (custom S4 classes, ensembles),
-pass `predict_fn = function(model, grid) ...` returning a
-length-`nrow(grid)` numeric vector.
+`dfspa()` extends the Successive Projection Algorithm to functions.
+It iteratively picks the study whose current residual norm is largest,
+projects the rest onto the orthogonal complement, and repeats $K$
+times. A denoising step averages each study with its near neighbours
+before the search; this trades a small bias for substantially smaller
+variance when the per-study estimates are noisy.
 
-### A worked example with `lm`
+### Step 2. Fitting weight model
 
-To keep this vignette dependency-free, here is the full onramp using
-`lm` as the per-centre model:
+For each study, `project_to_simplex()` finds the convex weights that
+best reconstruct its observed function from the recovered bases.
+`fit_weight_model()` then regresses these weight vectors on the
+study-level covariates `W` using a method of your choice (default:
+Dirichlet regression).
 
-```{r lm-onramp}
-m <- 8
-centre_meta <- data.frame(
-  region    = factor(sample(c("N", "S", "E", "W"), m, replace = TRUE)),
-  mean_age  = round(runif(m, 50, 70)),
-  pct_female = round(runif(m, 0.4, 0.6), 2)
-)
+### Step 3. Target prediction
 
-# Each centre fits a quadratic on a single covariate `x`.
-make_centre_data <- function(i) {
-  x <- runif(80, -1, 1)
-  beta <- centre_meta$mean_age[i] / 60        # toy effect of metadata
-  data.frame(x = x, y = beta * x + 0.3 * x^2 + rnorm(80, sd = 0.2))
-}
-centre_models <- lapply(seq_len(m), function(i)
-  stats::lm(y ~ poly(x, 2), data = make_centre_data(i)))
+`predict.metahunt()` takes a new metadata row $W_0$, predicts its
+weight vector through the fitted weight model, and returns the convex
+combination of the recovered bases. With `wrapper = mean` (or any
+other reduction) it returns a scalar summary — for example, an ATE
+under a uniform grid weighting.
 
-# Build a shared grid in the centres' covariate space and stack predictions.
-grid_centres <- data.frame(x = seq(-1, 1, length.out = 30))
-F_hat_centres <- f_hat_from_models(centre_models, grid_centres)
-dim(F_hat_centres)   # 8 × 30
-```
+## A worked end-to-end example
 
-You now have `F_hat_centres` (`m × G`) and `centre_meta` (`m × p`),
-which are everything the package needs.
-
-## A note on `grid_weights` and the L²(μ) norm
-
-MetaHunt computes distances between functions using a
-**weighted average over the grid**:
-
-  `||f - h||² = Σ_j  weight[j] × (f(x_j) - h(x_j))²`
-
-where `x_j` is the `j`-th grid point. The argument `grid_weights` (in
-many functions) is that vector of weights — one number per grid
-point. Plain English:
-
-- **Default** (`grid_weights = NULL`): every grid point counts equally
-  (`weight = 1/G`). This is fine when your grid is itself a
-  representative sample of patients.
-- **Non-uniform**: use this if your grid was sampled from one
-  population (e.g. the source pool) but you want distances to reflect
-  a different population (e.g. the target). Pass weights proportional
-  to the target's density at each grid point `x_j`.
-
-If you're not sure, leave it at the default and make sure the grid is
-a representative sample of the population you care about.
-
-## A simulated example for the rest of the vignette
-
-For the remaining sections we'll use a *simulated* `(F_hat, W)` so that
-we know the truth. **In your own data, replace this simulation with
-the onramp above.**
+For the rest of the vignette we work with a simulated `(F_hat, W)` so
+the truth is known. In your own data, replace this block with the
+data-prep onramp described in `vignette("data-prep")`.
 
 ```{r simulate}
 G <- 40; m <- 120; K_true <- 3
 x <- seq(0, 1, length.out = G)
-basis <- rbind(sin(pi * x), cos(pi * x), x)      # 3 true bases on the grid
+basis <- rbind(sin(pi * x), cos(pi * x), x)         # 3 true bases on the grid
 
-W <- data.frame(w1 = rnorm(m), w2 = rnorm(m))    # study-level covariates
+W <- data.frame(w1 = rnorm(m), w2 = rnorm(m))       # study-level covariates
 beta <- cbind(c(1, -0.8), c(-0.5, 1.2), c(0, 0))
 pi_true <- exp(as.matrix(W) %*% beta)
 pi_true <- pi_true / rowSums(pi_true)
@@ -196,231 +167,63 @@ dim(F_hat)
 ```
 
 In real data, `F_hat[i, ]` would be `predict(model_i, newdata = grid)`
-and `W[i, ]` would be that centre's metadata.
+and `W[i, ]` would be that centre's metadata. The data-prep vignette
+describes a one-line `lm`-based onramp.
 
-## Choosing `K`
+Fit the full pipeline and inspect the recovered bases:
 
-The two diagnostics in the package are complementary:
-
-The **elbow** plot (unsupervised) shows the average projection
-residual against `K`:
-
-```{r elbow}
-elbow <- reconstruction_error_curve(F_hat, K_range = 2:6,
-                                    dfspa_args = list(denoise = FALSE))
-plot(elbow$K, elbow$error, type = "b",
-     xlab = "K", ylab = "reconstruction error")
+```{r fit}
+fit <- metahunt(F_hat, W, K = 3)
+fit
 ```
 
-Note: we set `denoise = FALSE` in this simulated example so that no
-studies are pruned; in real data with noisy estimates, the default
-`denoise = TRUE` is recommended.
-
-The **CV prediction-error** plot (supervised) uses study-level
-covariates:
-
-```{r cv}
-cv <- cv_error_curve(F_hat, W, K_range = 2:6, n_folds = 5,
-                     dfspa_args = list(denoise = FALSE), seed = 1)
-plot(cv$K, cv$cv_error, type = "b",
-     xlab = "K", ylab = "CV prediction error")
+```{r plot-bases}
+plot(fit, x_axis = x,
+     col = c("#0072B2", "#D55E00", "#009E73"))
 ```
 
-Both dip sharply at `K = 3` — the true rank.
-
-> **Small-`m` note.** With `m = 8` centres, `n_folds = 5` leaves only
-> ~6 training studies per fold; the CV curve will be very noisy and
-> the elbow may be ambiguous. Prefer `n_folds = 2` or `3`, and lean on
-> domain knowledge to pick `K`.
-
-## Tuning the denoising parameters
-
-`dfspa()` has two denoising knobs `(N, Delta)` controlling the
-neighborhood-averaging step:
-
-```{r dfspa-knobs}
-# bypass denoising entirely
-fit_no <- metahunt(F_hat, W, K = 3, dfspa_args = list(denoise = FALSE))
-
-# pass custom (N, Delta)
-fit_manual <- metahunt(F_hat, W, K = 3,
-                       dfspa_args = list(N = 0.5 * log(nrow(F_hat)),
-                                         Delta = 0.4))
-```
-
-Or pick `(N, Delta)` by cross-validation at fixed `K`:
-
-```{r select-denoising}
-tune <- select_denoising_params(F_hat, W, K = 3, n_folds = 4, seed = 1)
-tune$best
-```
-
-Defaults search `N ∈ {0.2, 0.5, 1.0} × log(m)` and
-`Delta ∈ {0.05, 0.10, 0.20, 0.30} × max_pairwise_dist`. Override with
-`N_grid` / `Delta_grid`.
-
-## Fit the full pipeline
-
-`metahunt()` chains basis hunting, constrained projection, and the
-Dirichlet weight model. We plug the tuned `(N, Delta)` from the
-previous section into `dfspa_args`:
-
-```{r refit-tuned}
-fit_tuned <- metahunt(F_hat, W, K = 3,
-                      dfspa_args = list(N = tune$best$N,
-                                        Delta = tune$best$Delta))
-fit_tuned
-```
-
-We use `fit_tuned` for downstream prediction and conformal inference.
-
-Plot the recovered bases — these are the "fundamental shapes" your
-study-level functions are built from:
-
-```{r plot-bases, fig.width = 6, fig.height = 4}
-plot(fit_tuned, x_axis = x)
-```
-
-## Predict for new study-level covariates
+Predict the target functions for three new metadata profiles and plot
+them:
 
 ```{r predict}
-W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1))
-f_pred <- predict(fit_tuned, newdata = W_new)
-dim(f_pred)    # 3 x G
-
+W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1),
+                    row.names = c("baseline", "high w1, low w2", "low w1, high w2"))
+f_pred <- predict(fit, newdata = W_new)
+dim(f_pred)
+par(mar = c(4, 4.5, 3, 1))
 matplot(x, t(f_pred), type = "l", lty = 1,
+        col = c("#0072B2", "#D55E00", "#009E73"),
         xlab = "x", ylab = expression(tilde(f)(x)),
         main = "Predicted target functions")
-legend("topright", legend = paste("target", 1:3),
+legend("topright", legend = rownames(W_new),
        col = 1:3, lty = 1, bty = "n")
 ```
 
-Pass a `wrapper` for a scalar summary per target (e.g. an ATE):
+Pass a `wrapper` for a scalar summary per target (an ATE under uniform
+grid weights):
 
-```{r wrapped}
-predict(fit_tuned, newdata = W_new, wrapper = mean)
+```{r predict-wrapped}
+predict(fit, newdata = W_new, wrapper = mean)
 ```
 
-## Conformal prediction intervals
+## Where to next
 
-MetaHunt offers three flavours, all returning an object you can plot
-directly with `plot()`.
-
-### Pointwise intervals (default)
-
-With no `wrapper`, `split_conformal()` returns a separate
-$(1-\alpha)$ interval **at every grid point**:
-
-```{r split-pointwise, fig.width = 6, fig.height = 4}
-res_pw <- split_conformal(F_hat, W, W_new, K = 3, alpha = 0.05, seed = 1)
-plot(res_pw, target_idx = 1, x_axis = x)
-```
-
-> **Coverage caveat — pointwise vs joint.** A pointwise band gives a
-> 95% interval at *each individual grid point*, not jointly across all
-> grid points. The probability that the true function lies inside the
-> band at *every* grid point simultaneously is smaller than 95%.
-> If you need a joint guarantee, treat the band as a visualization aid
-> and use a scalar wrapper for inferential claims.
-
-### Scalar intervals via a wrapper
-
-```{r split-scalar}
-res_scalar <- split_conformal(F_hat, W, W_new, K = 3,
-                              wrapper = mean, alpha = 0.05, seed = 1)
-data.frame(prediction = res_scalar$prediction,
-           lower      = res_scalar$lower,
-           upper      = res_scalar$upper)
-plot(res_scalar)
-```
-
-### Choosing a conformal variant
-
-| Function | When to use |
-|---|---|
-| `split_conformal()` | Default. One train/calibration split. Fastest; some variance from the random split. |
-| `cross_conformal()` | Many studies + reduce split-induced variance. Refits the pipeline `n_folds + 1` times. |
-| `conformal_from_fit()` | You've already fit a pipeline (e.g. after tuning `K`) and want intervals without refitting. |
-
-> **Small-`m` warning on `cal_frac`.** With few studies, `cal_frac = 0.3`
-> can leave too few calibration sites for the chosen `alpha`. The
-> finite-sample formula needs `n_cal >= ceiling((1 - alpha)(n_cal + 1))`
-> calibration studies; otherwise the conformal quantile is `Inf` and
-> intervals are unbounded. The package will warn when this happens.
-> Either raise `cal_frac`, raise `alpha`, or use `cross_conformal()`.
-
-### Cross-conformal example
-
-```{r cross}
-res_cross <- cross_conformal(F_hat, W, W_new, K = 3, n_folds = 5,
-                             wrapper = mean, seed = 1)
-res_cross
-```
-
-### Using a pre-fit pipeline
-
-If you've already fit a `metahunt()` (e.g. after tuning `K` or
-denoising parameters), use `conformal_from_fit()` with a calibration
-set that was *not* used in fitting:
-
-```{r from-fit}
-tr  <- 1:80
-cal <- 81:100
-new <- 101:120
-
-fit_tr <- metahunt(F_hat[tr, ], W[tr, , drop = FALSE], K = 3)
-
-res_prefit <- conformal_from_fit(
-  fit_tr$dfspa_fit, fit_tr$weight_model,
-  F_cal = F_hat[cal, , drop = FALSE],
-  W_cal = W[cal, , drop = FALSE],
-  W_new = W[new, , drop = FALSE],
-  wrapper = mean, alpha = 0.05
-)
-
-# empirical coverage on the held-out set
-obs <- apply_wrapper(F_hat[new, , drop = FALSE], wrapper = mean)
-mean(obs >= res_prefit$lower & obs <= res_prefit$upper)
-```
-
-## When to use `metahunt()` vs `minmax_regret()`
-
-The package exports a second top-level method, `minmax_regret()`
-(Zhang, Huang, & Imai 2024), which does **not** use study-level
-covariates. It treats each source-site function as a candidate target
-and computes the convex combination that minimises worst-case regret.
-
-| Use `metahunt()` | Use `minmax_regret()` |
-|---|---|
-| You have many studies (`m` ≳ 20) | Few studies and/or unreliable metadata |
-| Study-level covariates `W` are informative | No `W`, or `W` doesn't predict heterogeneity |
-| You want predictions for **specific** new populations characterized by `W_0` | You want a single **worst-case** aggregator across the source pool |
-| Random effects driven by latent structure | Adversarial / robustness framing |
-
-```{r minmax}
-mm <- minmax_regret(F_hat)
-mm
-```
-
-```{r minmax-vs-metahunt, fig.width = 6, fig.height = 4}
-plot(x, mm$prediction, type = "l", col = "tomato", lwd = 2,
-     ylim = range(c(mm$prediction, f_pred[1, ])),
-     xlab = "x", ylab = "",
-     main = "minimax-regret vs. MetaHunt (target 1)")
-lines(x, f_pred[1, ], col = "steelblue", lwd = 2)
-legend("topright", legend = c("minmax_regret", "metahunt (W = (0,0))"),
-       col = c("tomato", "steelblue"), lty = 1, lwd = 2, bty = "n")
-```
-
-## Where next
-
-See `?metahunt`, `?split_conformal`, `?cross_conformal`,
-`?conformal_from_fit`, `?select_denoising_params`, `?minmax_regret`,
-`?f_hat_from_models`, `?build_grid` for full argument documentation.
-The individual pipeline steps — `dfspa()`, `project_to_simplex()`,
-`fit_weight_model()`, `predict_target()`,
-`reconstruction_error_curve()`, `cv_error_curve()` — are all exported
-and can be composed independently.
+- `vignette("data-prep")` — turning per-centre fitted models into
+  `(F_hat, W)` via `build_grid()` and `f_hat_from_models()`,
+  including a self-contained `lm` onramp.
+- `vignette("grid-weights")` — choosing the `grid_weights` argument
+  and the underlying $L^2(\mu)$ inner product.
+- `vignette("choosing-k-denoising")` — picking the rank $K$ and the
+  d-fSPA denoising knobs `(N, Delta)` via elbow and CV diagnostics.
+- `vignette("conformal-prediction")` — split, cross, and from-fit
+  conformal bands around the target function.
+- `vignette("wrapper-scalar")` — using `wrapper = mean` and other
+  reductions to turn function-valued predictions into ATEs and
+  related scalar estimands.
+- `vignette("minmax-baseline")` — when to prefer the covariate-free
+  worst-case-regret aggregator and how it compares to MetaHunt.
+- Function-level references: `?metahunt`, `?dfspa`,
+  `?fit_weight_model`, `?predict_target`.
 
 ## References
 
