@@ -1,0 +1,249 @@
+# MetaHunt
+
+**MetaHunt** is an R package for privacy-preserving meta-analysis of
+function-valued quantities (e.g. regression functions, conditional
+average treatment effect functions) across heterogeneous studies (Shi,
+Imai, & Zhang 2024,
+[arXiv:2604.23847](https://arxiv.org/abs/2604.23847)).
+
+Documentation: <https://wshi18.github.io/MetaHunt/>
+
+The package implements the methodology of
+
+> Shi, W., Imai, K., and Zhang, Y. *Privacy-preserving Meta-analysis
+> through Low-Rank Basis Hunting.*
+
+Given aggregate-level estimates of a function of interest from several
+source studies, together with study-level covariates, MetaHunt recovers
+a small set of latent basis functions that span all studies under a
+low-rank assumption, models how the mixing weights depend on study-level
+covariates via Dirichlet regression, and predicts the corresponding
+function for a new target population with valid conformal prediction
+intervals. Individual-level data from source studies are not required,
+which makes the procedure suitable for federated and multi-site
+settings.
+
+The package also exports
+[`minmax_regret()`](https://wshi18.github.io/MetaHunt/reference/minmax_regret.md),
+a covariate-free baseline based on the worst-case-regret aggregator of
+Zhang, Huang, and Imai (2024,
+[arXiv:2412.11136](https://arxiv.org/abs/2412.11136)). It is useful when
+the number of source studies is small or the study-level covariates are
+uninformative.
+
+## Installation
+
+``` r
+# install.packages("remotes")
+remotes::install_github("WShi18/MetaHunt")
+```
+
+## Quick example
+
+``` r
+library(MetaHunt)
+set.seed(1)
+
+# Simulate m studies, each represented by its function on a shared grid.
+G <- 30; m <- 60
+x <- seq(0, 1, length.out = G)
+basis <- rbind(sin(pi * x), cos(pi * x), x)
+W <- data.frame(w1 = rnorm(m), w2 = rnorm(m))
+eta <- as.matrix(W) %*% cbind(c(1, -0.5), c(-0.4, 1), c(0, 0))
+pi_true <- exp(eta) / rowSums(exp(eta))
+F_hat <- pi_true %*% basis + matrix(rnorm(m * G, sd = 0.05), m, G)
+
+# Fit and predict for a new study with W_new = (0, 0).
+fit   <- metahunt(F_hat, W, K = 3, dfspa_args = list(denoise = FALSE))
+W_new <- data.frame(w1 = 0, w2 = 0)
+pred  <- predict(fit, newdata = W_new, wrapper = mean)
+
+# 95% conformal interval for the same target.
+ci <- split_conformal(F_hat, W, W_new, K = 3,
+                      wrapper = mean, alpha = 0.05, seed = 1,
+                      dfspa_args = list(denoise = FALSE))
+ci$prediction
+c(ci$lower, ci$upper)
+```
+
+See
+[`vignette("metahunt-intro")`](https://wshi18.github.io/MetaHunt/articles/metahunt-intro.md)
+for a full walkthrough including data preparation from fitted model
+objects, rank selection, conformal intervals (split / cross / pre-fit),
+and the minimax-regret baseline.
+
+## Methods provided
+
+1.  **[`metahunt()`](https://wshi18.github.io/MetaHunt/reference/metahunt.md)** +
+    [`predict()`](https://rdrr.io/r/stats/predict.html),
+    [`plot()`](https://rdrr.io/r/graphics/plot.default.html),
+    [`summary()`](https://rdrr.io/r/base/summary.html) — end-to-end
+    fitter.
+2.  **[`split_conformal()`](https://wshi18.github.io/MetaHunt/reference/split_conformal.md),
+    [`cross_conformal()`](https://wshi18.github.io/MetaHunt/reference/cross_conformal.md),
+    [`conformal_from_fit()`](https://wshi18.github.io/MetaHunt/reference/conformal_from_fit.md)**
+    — prediction intervals.
+3.  **[`coverage()`](https://wshi18.github.io/MetaHunt/reference/coverage.md),
+    [`summary.metahunt_conformal()`](https://wshi18.github.io/MetaHunt/reference/summary.metahunt_conformal.md)**
+    — conformal diagnostics.
+4.  **[`minmax_regret()`](https://wshi18.github.io/MetaHunt/reference/minmax_regret.md)**
+    — covariate-free worst-case-regret baseline (Zhang, Huang, & Imai
+    2024).
+5.  **[`reconstruction_error_curve()`](https://wshi18.github.io/MetaHunt/reference/reconstruction_error_curve.md),
+    [`cv_error_curve()`](https://wshi18.github.io/MetaHunt/reference/cv_error_curve.md)**
+    — rank-selection diagnostics.
+6.  **[`select_denoising_params()`](https://wshi18.github.io/MetaHunt/reference/select_denoising_params.md)**
+    — cross-validated tuning of `(N, Delta)`.
+7.  **[`f_hat_from_models()`](https://wshi18.github.io/MetaHunt/reference/f_hat_from_models.md),
+    [`build_grid()`](https://wshi18.github.io/MetaHunt/reference/build_grid.md)**
+    — onramp from fitted-model lists to the package’s matrix inputs.
+
+The individual pipeline building blocks
+([`dfspa()`](https://wshi18.github.io/MetaHunt/reference/dfspa.md),
+[`project_to_simplex()`](https://wshi18.github.io/MetaHunt/reference/project_to_simplex.md),
+[`fit_weight_model()`](https://wshi18.github.io/MetaHunt/reference/fit_weight_model.md),
+[`predict_target()`](https://wshi18.github.io/MetaHunt/reference/predict_target.md),
+[`apply_wrapper()`](https://wshi18.github.io/MetaHunt/reference/apply_wrapper.md))
+are also exported and can be composed independently.
+
+## Citation
+
+If you use MetaHunt in academic work, please cite:
+
+> Shi, W., Imai, K., and Zhang, Y. (2024). *Privacy-preserving
+> meta-analysis through low-rank basis hunting.* arXiv:2604.23847.
+> <https://arxiv.org/abs/2604.23847>
+
+## Status
+
+`v0.1.0` is the first GitHub release. The API is stabilising; user
+feedback is welcome via
+[issues](https://github.com/WShi18/MetaHunt/issues).
+
+## License
+
+MIT © Wenqi Shi, Kosuke Imai, Yi Zhang
+
+# Package index
+
+## End-to-end fitter
+
+One-call interface; covers the full pipeline.
+
+- [`metahunt()`](https://wshi18.github.io/MetaHunt/reference/metahunt.md)
+  : Fit the full MetaHunt pipeline
+
+- [`predict(`*`<metahunt>`*`)`](https://wshi18.github.io/MetaHunt/reference/predict.metahunt.md)
+  : Predict target functions (or scalar summaries) from a MetaHunt fit
+
+- [`summary(`*`<metahunt>`*`)`](https://wshi18.github.io/MetaHunt/reference/summary.metahunt.md)
+  : Summarise a MetaHunt fit
+
+- [`print(`*`<summary.metahunt>`*`)`](https://wshi18.github.io/MetaHunt/reference/print.summary.metahunt.md)
+  :
+
+  Print a `summary.metahunt` object
+
+- [`plot(`*`<metahunt>`*`)`](https://wshi18.github.io/MetaHunt/reference/plot.metahunt.md)
+  : Plot recovered basis functions from a MetaHunt fit
+
+## Conformal prediction
+
+Distribution-free prediction intervals around the target function.
+
+- [`split_conformal()`](https://wshi18.github.io/MetaHunt/reference/split_conformal.md)
+  : Split conformal prediction intervals for target-function predictions
+- [`cross_conformal()`](https://wshi18.github.io/MetaHunt/reference/cross_conformal.md)
+  : Cross-conformal prediction intervals (pooled K-fold scores)
+- [`conformal_from_fit()`](https://wshi18.github.io/MetaHunt/reference/conformal_from_fit.md)
+  : Split conformal intervals from a pre-fit MetaHunt pipeline
+- [`coverage()`](https://wshi18.github.io/MetaHunt/reference/coverage.md)
+  : Empirical coverage of a conformal prediction-interval object
+- [`summary(`*`<metahunt_conformal>`*`)`](https://wshi18.github.io/MetaHunt/reference/summary.metahunt_conformal.md)
+  : Summarise a conformal prediction-interval object
+- [`plot(`*`<metahunt_conformal>`*`)`](https://wshi18.github.io/MetaHunt/reference/plot.metahunt_conformal.md)
+  : Plot a conformal prediction-interval object
+
+## Rank and tuning selection
+
+Diagnostics for choosing the number of bases K and the d-fSPA denoising
+knobs.
+
+- [`reconstruction_error_curve()`](https://wshi18.github.io/MetaHunt/reference/reconstruction_error_curve.md)
+  : Reconstruction-error curve for basis-rank selection
+- [`cv_error_curve()`](https://wshi18.github.io/MetaHunt/reference/cv_error_curve.md)
+  : Cross-validated prediction-error curve for basis-rank selection
+- [`select_denoising_params()`](https://wshi18.github.io/MetaHunt/reference/select_denoising_params.md)
+  : Choose d-fSPA denoising parameters by cross-validation
+- [`print(`*`<metahunt_denoising_search>`*`)`](https://wshi18.github.io/MetaHunt/reference/print.metahunt_denoising_search.md)
+  : Print method for d-fSPA denoising parameter search results
+
+## Pipeline building blocks
+
+Lower-level primitives that can be composed independently.
+
+- [`dfspa()`](https://wshi18.github.io/MetaHunt/reference/dfspa.md) :
+  Denoised functional Successive Projection Algorithm (d-fSPA)
+- [`project_to_simplex()`](https://wshi18.github.io/MetaHunt/reference/project_to_simplex.md)
+  : Project study-level functions onto the simplex spanned by basis
+  functions
+- [`fit_weight_model()`](https://wshi18.github.io/MetaHunt/reference/fit_weight_model.md)
+  : Fit a weight model mapping study-level covariates to simplex weights
+- [`predict(`*`<metahunt_weight_model>`*`)`](https://wshi18.github.io/MetaHunt/reference/predict.metahunt_weight_model.md)
+  : Predict simplex weights for new study-level covariates
+- [`coef(`*`<metahunt_weight_model>`*`)`](https://wshi18.github.io/MetaHunt/reference/coef.metahunt_weight_model.md)
+  : Extract coefficients from a MetaHunt weight model
+- [`predict_target()`](https://wshi18.github.io/MetaHunt/reference/predict_target.md)
+  : Predict the target function for new study-level covariates
+- [`apply_wrapper()`](https://wshi18.github.io/MetaHunt/reference/apply_wrapper.md)
+  : Reduce predicted functions to scalars via a user-supplied wrapper
+
+## Data preparation
+
+Onramp from fitted-model lists to MetaHunt’s matrix inputs.
+
+- [`build_grid()`](https://wshi18.github.io/MetaHunt/reference/build_grid.md)
+  : Build a shared evaluation grid from a reference dataset
+
+- [`f_hat_from_models()`](https://wshi18.github.io/MetaHunt/reference/f_hat_from_models.md)
+  :
+
+  Build the `F_hat` matrix from a list of fitted study-level models
+
+## Baselines
+
+Covariate-free worst-case-regret aggregator (Zhang, Huang & Imai 2024).
+
+- [`minmax_regret()`](https://wshi18.github.io/MetaHunt/reference/minmax_regret.md)
+  : Minimax-regret aggregator for multisite function-valued estimands
+
+## Package
+
+- [`MetaHunt`](https://wshi18.github.io/MetaHunt/reference/MetaHunt-package.md)
+  [`MetaHunt-package`](https://wshi18.github.io/MetaHunt/reference/MetaHunt-package.md)
+  : MetaHunt: Privacy-Preserving Meta-Analysis via Low-Rank Basis
+  Hunting
+
+# Articles
+
+### Get started
+
+- [Get started with
+  MetaHunt](https://wshi18.github.io/MetaHunt/articles/get-started.md):
+
+### Tutorials
+
+- [An introduction to
+  MetaHunt](https://wshi18.github.io/MetaHunt/articles/metahunt-intro.md):
+- [Preparing your data: from fitted models to
+  F_hat](https://wshi18.github.io/MetaHunt/articles/data-prep.md):
+- [Understanding grid_weights and the L2(mu)
+  norm](https://wshi18.github.io/MetaHunt/articles/grid-weights.md):
+- [Choosing K and the denoising
+  parameters](https://wshi18.github.io/MetaHunt/articles/choosing-k-denoising.md):
+- [Conformal prediction with different
+  choices](https://wshi18.github.io/MetaHunt/articles/conformal-prediction.md):
+- [Scalar summaries with
+  wrapper](https://wshi18.github.io/MetaHunt/articles/wrapper-scalar.md):
+- [When to prefer
+  minmax_regret](https://wshi18.github.io/MetaHunt/articles/minmax-baseline.md):
