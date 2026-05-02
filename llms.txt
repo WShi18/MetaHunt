@@ -34,6 +34,7 @@ uninformative.
 ## Installation
 
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("WShi18/MetaHunt")
 ```
@@ -41,6 +42,7 @@ remotes::install_github("WShi18/MetaHunt")
 ## Quick example
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 

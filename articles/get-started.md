@@ -1,6 +1,7 @@
 # Get started with MetaHunt
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -19,10 +20,10 @@ pipeline, and tuning, see
 
 Two ingredients drive every function in the package.
 
-| Object  | Description                                                                                                                      | Example                                                                                  |
-|---------|----------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| Object | Description | Example |
+|----|----|----|
 | `F_hat` | An `m`-by-`G` numeric matrix. Row `i` is the function of study `i` evaluated on a *shared* set of `G` patient-level grid points. | `F_hat[i, g]` is the predicted treatment effect for centre `i` at “patient profile” `g`. |
-| `W`     | An `m`-by-`p` matrix or data frame of study-level covariates (one row per study).                                                | Region, mean age, percent female, year.                                                  |
+| `W` | An `m`-by-`p` matrix or data frame of study-level covariates (one row per study). | Region, mean age, percent female, year. |
 
 > **Starting from fitted models?** If your inputs are one fitted model
 > per study (e.g. `ranger`,
@@ -41,6 +42,7 @@ Simulate a small problem so the vignette has no external data
 dependency:
 
 ``` r
+
 m <- 30; G <- 20; K_true <- 2
 x <- seq(0, 1, length.out = G)
 basis <- rbind(sin(pi * x), x)                        # 2 true bases on the grid
@@ -58,6 +60,7 @@ Fit and get a conformal interval for the scalar wrapper `mean` (the ATE
 under uniform grid weights):
 
 ``` r
+
 res <- split_conformal(F_hat, W, W_new, K = K_true,
                        wrapper = mean, alpha = 0.1, seed = 1,
                        dfspa_args = list(denoise = FALSE))
@@ -76,6 +79,7 @@ data.frame(prediction = res$prediction,
 conformal object renders the prediction with its band:
 
 ``` r
+
 plot(res)
 ```
 

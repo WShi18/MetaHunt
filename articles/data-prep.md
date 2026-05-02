@@ -1,6 +1,7 @@
 # Preparing your data: from fitted models to F_hat
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -68,6 +69,7 @@ will call `predict(model, newdata = grid)` and silently produce nonsense
 if (say) factor levels disagree.
 
 ``` r
+
 ref <- data.frame(age = rnorm(500, 60, 10),
                   bp  = rnorm(500, 130, 15),
                   bmi = rnorm(500, 28, 4))
@@ -109,11 +111,11 @@ Internally,
 [`f_hat_from_models()`](https://wshi18.github.io/MetaHunt/reference/f_hat_from_models.md)
 dispatches on each model’s class:
 
-| Class                                                                                       | Call form                                    |
-|---------------------------------------------------------------------------------------------|----------------------------------------------|
-| `ranger`                                                                                    | `predict(model, data = grid)$predictions`    |
+| Class | Call form |
+|----|----|
+| `ranger` | `predict(model, data = grid)$predictions` |
 | [`grf::causal_forest`](https://rdrr.io/pkg/grf/man/causal_forest.html), `regression_forest` | `predict(model, newdata = grid)$predictions` |
-| anything else                                                                               | `as.numeric(predict(model, newdata = grid))` |
+| anything else | `as.numeric(predict(model, newdata = grid))` |
 
 The default branch covers `lm`, `glm`, `randomForest`, and most other R
 model objects whose [`predict()`](https://rdrr.io/r/stats/predict.html)
@@ -122,6 +124,7 @@ method returns a numeric vector when called with `newdata`.
 #### `ranger` example (not run)
 
 ``` r
+
 library(ranger)
 centre_models <- lapply(centre_data_list,
                         function(d) ranger(y ~ ., data = d))
@@ -131,6 +134,7 @@ F_hat <- f_hat_from_models(centre_models, grid)
 #### `grf::causal_forest` example (not run)
 
 ``` r
+
 library(grf)
 centre_models <- lapply(centre_data_list,
                         function(d) causal_forest(d$X, d$Y, d$W))
@@ -150,6 +154,7 @@ is the same `lm-onramp` flow that previously appeared in the
 introductory vignette, broken out and annotated.)
 
 ``` r
+
 m <- 8
 centre_meta <- data.frame(
   region     = factor(sample(c("N", "S", "E", "W"), m, replace = TRUE)),
@@ -192,6 +197,7 @@ must accept `(model, grid)` and return a length-`nrow(grid)` numeric
 vector:
 
 ``` r
+
 # Toy "model" that is just a list with a slope. predict_fn evaluates it.
 fake_models <- lapply(seq_len(4), function(i)
   list(slope = i / 4, intercept = 0))
@@ -217,6 +223,7 @@ dataset and let [`predict()`](https://rdrr.io/r/stats/predict.html)
 evaluate at each row.
 
 ``` r
+
 # A 3-covariate reference dataset and a sub-sampled grid.
 ref3   <- data.frame(age = rnorm(400, 60, 10),
                      bp  = rnorm(400, 130, 15),
@@ -258,6 +265,7 @@ After building `F_hat`, run these quick checks before passing it into
 the rest of the pipeline:
 
 ``` r
+
 # Right shape: m studies x G grid points.
 dim(F_hat3)
 #> [1]  8 25
@@ -290,6 +298,7 @@ summary(apply(F_hat3, 1, function(r) c(min = min(r), max = max(r))))
 A quick visual check on a 1-D grid is also worth the cost:
 
 ``` r
+
 matplot(grid_centres$x, t(F_hat_centres), type = "l", lty = 1,
         col = "grey50",
         xlab = "x", ylab = expression(hat(f)(x)),

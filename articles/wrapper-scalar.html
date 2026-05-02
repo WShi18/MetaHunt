@@ -109,7 +109,7 @@ numeric matrix; row <code>j</code> is one function on the grid.</li>
 <code>grid_weights</code> (uniform <code>1/G_grid</code> by default),
 divided by <code>sum(grid_weights)</code>.</li>
 <li>If <code>wrapper</code> is a function, <code><a href="../reference/apply_wrapper.html">apply_wrapper()</a></code>
-calls <code>apply(F_mat,   1, wrapper)</code>, which means <strong>the
+calls <code>apply(F_mat, 1, wrapper)</code>, which means <strong>the
 wrapper receives a single numeric vector of length
 <code>G_grid</code></strong> — one row of <code>F_mat</code> at a time —
 and must return a single numeric value.</li>
@@ -125,7 +125,7 @@ exactly one entry per row.</p>
 </h2>
 <p>We simulate a multi-site clinical trial with <code>m = 8</code>
 sites. Each site has its own individual-level data
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>,</mo><mi>X</mi><mo>,</mo><mi>T</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(Y, X, T)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>Y</mi><mo>,</mo><mi>X</mi><mo>,</mo><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(Y, X, T)</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
 is a continuous outcome,
@@ -133,7 +133,7 @@ is a continuous outcome,
 is a single patient covariate (<code>age</code>), and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
 is binary treatment. The site-level CATE function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">age</mtext><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>E</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>Y</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>Y</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>∣</mo><mtext mathvariant="normal">age</mtext><mo>,</mo><mtext mathvariant="normal">site</mtext><mo>=</mo><mi>i</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\tau^{(i)}(\text{age}) = E[Y(1) - Y(0) \mid \text{age}, \text{site} = i]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>τ</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo stretchy="false" form="prefix">(</mo><mtext mathvariant="normal">age</mtext><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>E</mi><mo stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>∣</mo><mtext mathvariant="normal">age</mtext><mo>,</mo><mtext mathvariant="normal">site</mtext><mo>=</mo><mi>i</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\tau^{(i)}(\text{age}) = E[Y(1) - Y(0) \mid \text{age}, \text{site} = i]</annotation></semantics></math>
 varies across sites in a way that depends on the site’s metadata. Each
 site fits its own <code><a href="https://rdrr.io/pkg/grf/man/causal_forest.html" class="external-link">grf::causal_forest</a></code> on its
 individual-level data, and shares only the fitted model — not the

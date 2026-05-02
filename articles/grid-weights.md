@@ -1,6 +1,7 @@
 # Understanding grid_weights and the L2(mu) norm
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -73,6 +74,7 @@ two different `grid_weights`. The first run is uniform; the second
 up-weights the right half of the grid by a factor of about 5.
 
 ``` r
+
 m <- 40
 G <- 30
 x <- seq(0, 1, length.out = G)
@@ -94,6 +96,7 @@ dim(F_hat)
 Now the two `grid_weights` choices:
 
 ``` r
+
 gw_uniform <- rep(1 / G, G)
 
 # Up-weight x > 0.5 by ~5x. Renormalisation is optional but tidy.
@@ -116,6 +119,7 @@ attention to the right half of the grid when ranking which study is the
 “extreme” one to anchor:
 
 ``` r
+
 matplot(
   x,
   cbind(fit_unif$bases[1, ], fit_right$bases[1, ]),

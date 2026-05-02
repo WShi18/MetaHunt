@@ -139,14 +139,15 @@ grid of <code>G</code> points. The (weighted) \(L^2(\mu)\) inner product is
 supplied, uniform weights <code>1 / G</code> are used.</p>
 <p>Denoising follows Jin (2024): for each study <code>i</code>, let
 \(B_\Delta(\hat f^{(i)}) = \{j : \|\hat f^{(j)} - \hat f^{(i)}\| \le
-\Delta\}\). If <code>|B_Δ(f̂^{(i)})| &lt; N</code>, study <code>i</code> is discarded; otherwise
-<code>f̂^{(i)}</code> is replaced by the average of the functions in <code>B_Δ</code>.
+\Delta\}\). If \(|B_\Delta(\hat f^{(i)})| &lt; N\), study <code>i</code> is discarded;
+otherwise \(\hat f^{(i)}\) is replaced by the average of the functions
+in \(B_\Delta\).
 After denoising, the functional SPA step iteratively selects, at each of
 the <code>K</code> iterations, the remaining function with the largest norm after
 projecting out the span of previously selected bases.</p>
 <p>Default tuning parameters follow the heuristics of the paper:
 <code>N = 0.5 * log(m)</code> and
-<code>Delta = max_{ij} ||f̂^{(i)} - f̂^{(j)}|| / 10</code>.</p>
+\(\Delta = \max_{ij} \|\hat f^{(i)} - \hat f^{(j)}\| / 10\).</p>
     </div>
 
     <div class="section level2">

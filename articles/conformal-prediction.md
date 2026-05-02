@@ -1,6 +1,7 @@
 # Conformal prediction with different choices
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -24,6 +25,7 @@ no distributional assumptions on the noise or on the weight model.
 ## A small standalone simulation
 
 ``` r
+
 # m = 80 is large enough that with cal_frac = 0.5 and alpha = 0.05 the conformal quantile is finite.
 m <- 80; G <- 20; K_true <- 3
 x <- seq(0, 1, length.out = G)
@@ -35,6 +37,7 @@ F_hat <- pi_true %*% basis + matrix(rnorm(m * G, sd = 0.05), m, G)
 ```
 
 ``` r
+
 W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1))
 ```
 
@@ -43,10 +46,10 @@ W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1))
 All three return an object you can plot directly with
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html).
 
-| Function                                                                                    | When to use                                                                                                                                                                                 |
-|---------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`split_conformal()`](https://wshi18.github.io/MetaHunt/reference/split_conformal.md)       | Default. One train/calibration split. Fastest; some variance from the random split.                                                                                                         |
-| [`cross_conformal()`](https://wshi18.github.io/MetaHunt/reference/cross_conformal.md)       | Many studies, want lower split-induced variance. Refits the pipeline `n_folds + 1` times.                                                                                                   |
+| Function | When to use |
+|----|----|
+| [`split_conformal()`](https://wshi18.github.io/MetaHunt/reference/split_conformal.md) | Default. One train/calibration split. Fastest; some variance from the random split. |
+| [`cross_conformal()`](https://wshi18.github.io/MetaHunt/reference/cross_conformal.md) | Many studies, want lower split-induced variance. Refits the pipeline `n_folds + 1` times. |
 | [`conformal_from_fit()`](https://wshi18.github.io/MetaHunt/reference/conformal_from_fit.md) | You’ve already fit a pipeline (e.g. after tuning `K`) and want intervals without refitting. See [`?conformal_from_fit`](https://wshi18.github.io/MetaHunt/reference/conformal_from_fit.md). |
 
 ## Split conformal
@@ -57,6 +60,7 @@ does a single train / calibration split. With small `m`, set
 `alpha`.
 
 ``` r
+
 res_pw <- split_conformal(F_hat, W, W_new, K = K_true, alpha = 0.05,
                           cal_frac = 0.5, seed = 1,
                           dfspa_args = list(denoise = FALSE))
@@ -69,6 +73,7 @@ The shaded region is the pointwise 95% conformal band; it has finite
 width because `n_cal = 40` is large enough for `α = 0.05`.
 
 ``` r
+
 res_scalar <- split_conformal(F_hat, W, W_new, K = K_true,
                               wrapper = mean, alpha = 0.05,
                               cal_frac = 0.5, seed = 1,
@@ -89,6 +94,7 @@ reduces the variance of the band that comes from the random split, at
 the cost of refitting `n_folds + 1` times.
 
 ``` r
+
 res_cross <- cross_conformal(F_hat, W, W_new, K = K_true, n_folds = 4,
                              wrapper = mean, alpha = 0.1, seed = 1,
                              dfspa_args = list(denoise = FALSE))
@@ -114,6 +120,7 @@ demonstration only*; in real use, hold out a separate calibration set so
 the exchangeability argument applies to genuinely unseen studies.
 
 ``` r
+
 fit <- metahunt(F_hat, W, K = K_true, dfspa_args = list(denoise = FALSE))
 pi_hat <- project_to_simplex(F_hat, fit$dfspa_fit$bases)
 res_pre <- conformal_from_fit(
@@ -160,6 +167,7 @@ unbounded. The fix is to either supply more studies, raise `α`, or raise
 `cal_frac`.
 
 ``` r
+
 m_small <- 30  # too small for alpha = 0.05 with cal_frac = 0.5
 F_small <- F_hat[1:m_small, , drop = FALSE]
 W_small <- W[1:m_small, , drop = FALSE]

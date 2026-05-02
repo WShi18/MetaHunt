@@ -1,6 +1,7 @@
 # Choosing K and the denoising parameters
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -26,6 +27,7 @@ small smoothing bias.
 ## A small standalone simulation
 
 ``` r
+
 m <- 30; G <- 20; K_true <- 3
 x <- seq(0, 1, length.out = G)
 basis <- rbind(sin(pi * x), cos(pi * x), x)
@@ -42,6 +44,7 @@ observed `F_hat` as a function of `K`. It is unsupervised — it does not
 use `W` — and is fast.
 
 ``` r
+
 elbow <- reconstruction_error_curve(F_hat, K_range = 2:6,
                                     dfspa_args = list(denoise = FALSE))
 plot(elbow$K, elbow$error, type = "b",
@@ -60,6 +63,7 @@ This is supervised and tends to identify a tighter elbow when the
 metadata is informative.
 
 ``` r
+
 cv <- cv_error_curve(F_hat, W, K_range = 2:6, n_folds = 4,
                      dfspa_args = list(denoise = FALSE), seed = 1)
 plot(cv$K, cv$cv_error, type = "b",
@@ -87,6 +91,7 @@ denoising entirely. This avoids the small-sample failure mode where
 aggressive denoising prunes too many studies.
 
 ``` r
+
 fit_no <- metahunt(F_hat, W, K = K_true,
                    dfspa_args = list(denoise = FALSE))
 fit_no
@@ -105,6 +110,7 @@ If you have a sense of scale for the within-study estimation error, pass
 near-default configuration on the same data.
 
 ``` r
+
 fit_no <- metahunt(F_hat, W, K = K_true,
                    dfspa_args = list(denoise = FALSE))
 
@@ -124,6 +130,7 @@ is too strong. The function records those folds as failures and returns
 the best surviving combination.
 
 ``` r
+
 tune <- select_denoising_params(F_hat, W, K = K_true, n_folds = 4, seed = 1)
 tune$best
 #> $N

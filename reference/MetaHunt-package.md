@@ -48,11 +48,15 @@ Useful links:
 
 - <https://github.com/WShi18/MetaHunt>
 
+- <https://wshi18.github.io/MetaHunt/>
+
+- <https://arxiv.org/abs/2604.23847>
+
 - Report bugs at <https://github.com/WShi18/MetaHunt/issues>
 
 ## Author
 
-**Maintainer**: Wenqi Shi <wenqi_shi@g.harvard.edu>
+**Maintainer**: Wenqi Shi <wenqishi18@gmail.com>
 
 Authors:
 

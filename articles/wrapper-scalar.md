@@ -1,6 +1,7 @@
 # Scalar summaries with wrapper
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -51,10 +52,10 @@ entry per row.
 ## An ATE example with `grf::causal_forest`
 
 We simulate a multi-site clinical trial with `m = 8` sites. Each site
-has its own individual-level data $(Y,X,T)$ where $Y$ is a continuous
-outcome, $X$ is a single patient covariate (`age`), and $T$ is binary
-treatment. The site-level CATE function
-$\tau^{(i)}\left( \text{age} \right) = E\left\lbrack Y(1) - Y(0) \mid \text{age},\text{site} = i \right\rbrack$
+has its own individual-level data $`(Y, X, T)`$ where $`Y`$ is a
+continuous outcome, $`X`$ is a single patient covariate (`age`), and
+$`T`$ is binary treatment. The site-level CATE function
+$`\tau^{(i)}(\text{age}) = E[Y(1) - Y(0) \mid \text{age}, \text{site} = i]`$
 varies across sites in a way that depends on the site’s metadata. Each
 site fits its own
 [`grf::causal_forest`](https://rdrr.io/pkg/grf/man/causal_forest.html)
@@ -62,6 +63,7 @@ on its individual-level data, and shares only the fitted model — not the
 patient data — with us.
 
 ``` r
+
 m <- 8
 n_per_site <- 200
 G <- 30
@@ -89,6 +91,7 @@ Each site fits its own `causal_forest`. We use `num.trees = 200` to keep
 the vignette fast; in practice you would use the default 2000 or more.
 
 ``` r
+
 cf_models <- lapply(site_data_list, function(d)
   grf::causal_forest(X = matrix(d$age, ncol = 1),
                      Y = d$Y,
@@ -106,6 +109,7 @@ the default `predict_fn` is sufficient and you can omit the `predict_fn`
 argument.
 
 ``` r
+
 cate_predict <- function(model, grid) {
   as.numeric(stats::predict(model, newdata = matrix(grid$age, ncol = 1))$predictions)
 }
@@ -120,6 +124,7 @@ on `(F_hat, W)` and ask for the predicted ATE at a hypothetical new
 site.
 
 ``` r
+
 fit <- metahunt(F_hat, W, K = 3, dfspa_args = list(denoise = FALSE))
 W_new <- data.frame(year = 2018, pct_treated = 0.45)
 ate_pred <- predict(fit, newdata = W_new, wrapper = mean)
@@ -144,6 +149,7 @@ wrapper. With a uniform grid this is just the unweighted average of the
 function over the grid — i.e. the grid-uniform ATE.
 
 ``` r
+
 predict(fit, newdata = W_new, wrapper = mean)
 #> [1] 0.9247137
 ```
@@ -155,6 +161,7 @@ in a cost-effectiveness setting). The wrapper averages `max(f(x), 0)`
 over the grid:
 
 ``` r
+
 restricted_pos_mean <- function(f) sum(pmax(f, 0)) / length(f)
 predict(fit, newdata = W_new, wrapper = restricted_pos_mean)
 #> [1] 0.9247137
@@ -171,6 +178,7 @@ ordered (e.g. age, dose, or time). For our age grid it is the gap in
 CATE between an 80-year-old and a 30-year-old patient at the new site:
 
 ``` r
+
 endpoint_contrast <- function(f) f[length(f)] - f[1]
 predict(fit, newdata = W_new, wrapper = endpoint_contrast)
 #> [1] 0.7503231
@@ -193,6 +201,7 @@ other seven for training plus calibration. The calibration set is small,
 so we use `alpha = 0.1` rather than `0.05`.
 
 ``` r
+
 # Use 7 sites for training+calibration, predict for the held-out 8th
 tr_cal <- 1:7; new <- 8
 res <- split_conformal(
@@ -221,13 +230,13 @@ split-conformal at scale.
 
 ## Pointwise vs scalar — quick reference
 
-| Aspect             | Pointwise (`wrapper = NULL`)                     | Scalar (`wrapper` supplied)                           |
-|--------------------|--------------------------------------------------|-------------------------------------------------------|
-| Output shape       | `nrow(W_new)` x `G_grid` matrix                  | length-`nrow(W_new)` numeric vector                   |
-| Conformal quantile | one per grid point (length-`G_grid`)             | a single scalar                                       |
-| Coverage guarantee | per grid point, marginally (not joint over grid) | for the scalar summary, marginally                    |
-| Best for           | visualising the predicted function with a band   | reporting a single number with a valid CI             |
-| Example call       | `split_conformal(F, W, W_new, K = 3)`            | `split_conformal(F, W, W_new, K = 3, wrapper = mean)` |
+| Aspect | Pointwise (`wrapper = NULL`) | Scalar (`wrapper` supplied) |
+|----|----|----|
+| Output shape | `nrow(W_new)` x `G_grid` matrix | length-`nrow(W_new)` numeric vector |
+| Conformal quantile | one per grid point (length-`G_grid`) | a single scalar |
+| Coverage guarantee | per grid point, marginally (not joint over grid) | for the scalar summary, marginally |
+| Best for | visualising the predicted function with a band | reporting a single number with a valid CI |
+| Example call | `split_conformal(F, W, W_new, K = 3)` | `split_conformal(F, W, W_new, K = 3, wrapper = mean)` |
 
 A pointwise band is a visualisation aid; a scalar interval is the right
 object for an inferential claim about a specific functional. Pick the

@@ -1,6 +1,7 @@
 # An introduction to MetaHunt
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -35,39 +36,44 @@ proofs.
 ### A1. Low-rank cross-study heterogeneity
 
 We assume the true study-level functions all live inside the convex hull
-of a small number $K$ of shared *latent basis functions*. Each study is
-a convex combination of the bases, with non-negative weights that sum to
-one. Geometrically, every study is a point inside a $(K - 1)$-simplex
+of a small number $`K`$ of shared *latent basis functions*. Each study
+is a convex combination of the bases, with non-negative weights that sum
+to one. Geometrically, every study is a point inside a $`(K-1)`$-simplex
 whose vertices are the basis functions; the bases are identifiable as
 the vertices of that hull.
 
-Formally, there exist basis functions $g_{1},\ldots,g_{K}$ with $K < m$
-such that, for every study $i \in \{ 0,1,\ldots,m\}$,
-$$f^{(i)}(\mathbf{x})\; = \;\sum\limits_{k = 1}^{K}\pi_{ik}\, g_{k}(\mathbf{x}),\qquad\mathbf{x} \in \mathcal{X},$$
+Formally, there exist basis functions $`g_1, \ldots, g_K`$ with
+$`K < m`$ such that, for every study $`i \in \{0, 1, \ldots, m\}`$,
+``` math
+f^{(i)}(\boldsymbol{x}) \;=\; \sum_{k=1}^{K} \pi_{ik}\, g_k(\boldsymbol{x}), \qquad \boldsymbol{x} \in \mathcal{X},
+```
 with weight vector
-${\mathbf{π}}_{i} = \left( \pi_{i1},\ldots,\pi_{iK} \right)^{\top} \in \Delta_{K - 1}$,
-the $(K - 1)$-simplex. The bases are non-degenerate,
-i.e. $g_{2} - g_{1},\ldots,g_{K} - g_{1}$ are linearly independent in
-$L^{2}(\mu)$.
+$`\boldsymbol{\pi}_i = (\pi_{i1}, \ldots, \pi_{iK})^\top \in \Delta_{K-1}`$,
+the $`(K-1)`$-simplex. The bases are non-degenerate,
+i.e. $`g_2 - g_1, \ldots, g_K - g_1`$ are linearly independent in
+$`L^2(\mu)`$.
 
-*What this buys you:* the entire $m$-by-grid table of study functions
-collapses to $K$ shared shapes plus an $m$-by-$K$ table of weights, so
-heterogeneity becomes low-dimensional and shareable.
+*What this buys you:* the entire $`m`$-by-grid table of study functions
+collapses to $`K`$ shared shapes plus an $`m`$-by-$`K`$ table of
+weights, so heterogeneity becomes low-dimensional and shareable.
 
 ### A2. Weight model
 
-The mixing weight ${\mathbf{π}}_{i}$ for study $i$ is drawn from some
-conditional distribution given that study’s covariates $\mathbf{W}_{i}$.
-The distribution can be anything you can estimate — a Dirichlet
-regression, an RKHS-Dirichlet, a multinomial logit, a nearest-neighbour
-smoother. MetaHunt does not commit you to a specific functional form.
+The mixing weight $`\boldsymbol{\pi}_i`$ for study $`i`$ is drawn from
+some conditional distribution given that study’s covariates
+$`\boldsymbol{W}_i`$. The distribution can be anything you can estimate
+— a Dirichlet regression, an RKHS-Dirichlet, a multinomial logit, a
+nearest-neighbour smoother. MetaHunt does not commit you to a specific
+functional form.
 
-Formally, for $i = 0,1,\ldots,m$, the weight vectors are independent
-draws
-$${\mathbf{π}}_{i} \mid \mathbf{W}_{i}\;\overset{\text{ind.}}{\sim}\;\mathcal{P}_{{\mathbf{π}} \mid \mathbf{W}}\left( \, \cdot \mid \mathbf{W}_{i} \right),$$
-where $\mathcal{P}_{{\mathbf{π}} \mid \mathbf{W}}$ is an arbitrary
-distributional map from the covariate space $\mathcal{W}$ to the simplex
-$\Delta_{K - 1}$.
+Formally, for $`i = 0, 1, \ldots, m`$, the weight vectors are
+independent draws
+``` math
+\boldsymbol{\pi}_i \mid \boldsymbol{W}_i \;\stackrel{\text{ind.}}{\sim}\; \mathcal{P}_{\boldsymbol{\pi} \mid \boldsymbol{W}}(\,\cdot \mid \boldsymbol{W}_i),
+```
+where $`\mathcal{P}_{\boldsymbol{\pi}\mid\boldsymbol{W}}`$ is an
+arbitrary distributional map from the covariate space $`\mathcal{W}`$ to
+the simplex $`\Delta_{K-1}`$.
 
 *What this buys you:* once you can map metadata to weights, predicting
 the function for a brand-new target population reduces to predicting its
@@ -81,10 +87,12 @@ under reordering. This is much weaker than i.i.d. and is the standard
 condition under which conformal prediction is valid.
 
 Formally, the site-level covariates
-$\mathbf{W}_{0},\mathbf{W}_{1},\ldots,\mathbf{W}_{m}$ are exchangeable.
-Combined with A1–A2, this implies that the triples
-$$(\mathbf{W}_{i},\,{\mathbf{π}}_{i},\, f^{(i)}),\qquad i = 0,1,\ldots,m,$$
-are jointly exchangeable across $i$.
+$`\boldsymbol{W}_0, \boldsymbol{W}_1, \ldots, \boldsymbol{W}_m`$ are
+exchangeable. Combined with A1–A2, this implies that the triples
+``` math
+\bigl(\boldsymbol{W}_i,\, \boldsymbol{\pi}_i,\, f^{(i)}\bigr), \qquad i = 0, 1, \ldots, m,
+```
+are jointly exchangeable across $`i`$.
 
 *What this buys you:* the calibration step in conformal prediction
 inherits a finite-sample, distribution-free coverage guarantee with no
@@ -93,21 +101,23 @@ need for parametric error models.
 ### A4. Estimation error control
 
 Each study reports a noisy version of its true function,
-${\widehat{f}}^{(i)} = f^{(i)} + \epsilon^{(i)}$. We assume the
-within-study estimation error vanishes uniformly in the within-study
-sample size, and that the number of studies $m$ does not grow too fast
-relative to those sample sizes. In words: every study should be
-reasonably well-estimated, and you should not have a large number of
-studies whose individual sample sizes $n_{i}$ are small.
+$`\hat f^{(i)} = f^{(i)} + \epsilon^{(i)}`$. We assume the within-study
+estimation error vanishes uniformly in the within-study sample size, and
+that the number of studies $`m`$ does not grow too fast relative to
+those sample sizes. In words: every study should be reasonably
+well-estimated, and you should not have a large number of studies whose
+individual sample sizes $`n_i`$ are small.
 
 Formally, write
-${\widehat{f}}^{(i)}(\mathbf{x}) = f^{(i)}(\mathbf{x}) + \epsilon^{(i)}(\mathbf{x})$.
+$`\hat f^{(i)}(\boldsymbol{x}) = f^{(i)}(\boldsymbol{x}) + \epsilon^{(i)}(\boldsymbol{x})`$.
 We assume
-$$\sup\limits_{\mathbf{x} \in \mathcal{X}}{\mathbb{E}}\!\left\lbrack \epsilon^{(i)}(\mathbf{x})^{2} \right\rbrack = O\!\left( n_{i}^{- r} \right)\quad{\text{for some}\mspace{6mu}}r > 0,$$
-and that $m = o(\inf_{i}n_{i}^{\, a})$ for some $0 < a < r$, where
-$n_{i}$ is study $i$’s sample size.
+``` math
+\sup_{\boldsymbol{x} \in \mathcal{X}} \mathbb{E}\!\left[\epsilon^{(i)}(\boldsymbol{x})^2\right] = O\!\left(n_i^{-r}\right) \quad \text{for some } r > 0,
+```
+and that $`m = o\bigl(\inf_i n_i^{\,a}\bigr)`$ for some $`0 < a < r`$,
+where $`n_i`$ is study $`i`$’s sample size.
 
-*What this buys you:* the noise in $\widehat{F}$ does not accumulate
+*What this buys you:* the noise in $`\hat F`$ does not accumulate
 through the pipeline, basis recovery is consistent, and conformal
 intervals retain their asymptotic coverage despite a multi-stage
 estimator.
@@ -123,10 +133,10 @@ individually if you want fine-grained control.
 [`dfspa()`](https://wshi18.github.io/MetaHunt/reference/dfspa.md)
 extends the Successive Projection Algorithm to functions. It iteratively
 picks the study whose current residual norm is largest, projects the
-rest onto the orthogonal complement, and repeats $K$ times. A denoising
-step averages each study with its near neighbours before the search;
-this trades a small bias for substantially smaller variance when the
-per-study estimates are noisy.
+rest onto the orthogonal complement, and repeats $`K`$ times. A
+denoising step averages each study with its near neighbours before the
+search; this trades a small bias for substantially smaller variance when
+the per-study estimates are noisy.
 
 ### Step 2. Fitting weight model
 
@@ -141,7 +151,7 @@ using a method of your choice (default: Dirichlet regression).
 ### Step 3. Target prediction
 
 [`predict.metahunt()`](https://wshi18.github.io/MetaHunt/reference/predict.metahunt.md)
-takes a new metadata row $W_{0}$, predicts its weight vector through the
+takes a new metadata row $`W_0`$, predicts its weight vector through the
 fitted weight model, and returns the convex combination of the recovered
 bases. With `wrapper = mean` (or any other reduction) it returns a
 scalar summary — for example, an ATE under a uniform grid weighting.
@@ -154,6 +164,7 @@ data-prep onramp described in
 [`vignette("data-prep")`](https://wshi18.github.io/MetaHunt/articles/data-prep.md).
 
 ``` r
+
 G <- 40; m <- 120; K_true <- 3
 x <- seq(0, 1, length.out = G)
 basis <- rbind(sin(pi * x), cos(pi * x), x)         # 3 true bases on the grid
@@ -175,6 +186,7 @@ describes a one-line `lm`-based onramp.
 Fit the full pipeline and inspect the recovered bases:
 
 ``` r
+
 fit <- metahunt(F_hat, W, K = 3)
 fit
 #> MetaHunt fit
@@ -186,6 +198,7 @@ fit
 ```
 
 ``` r
+
 plot(fit, x_axis = x,
      col = c("#0072B2", "#D55E00", "#009E73"))
 ```
@@ -196,6 +209,7 @@ Predict the target functions for three new metadata profiles and plot
 them:
 
 ``` r
+
 W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1),
                     row.names = c("baseline", "high w1, low w2", "low w1, high w2"))
 f_pred <- predict(fit, newdata = W_new)
@@ -216,6 +230,7 @@ Pass a `wrapper` for a scalar summary per target (an ATE under uniform
 grid weights):
 
 ``` r
+
 predict(fit, newdata = W_new, wrapper = mean)
 #> [1] 0.3318159 0.5559631 0.1020037
 ```
@@ -229,11 +244,11 @@ predict(fit, newdata = W_new, wrapper = mean)
   [`f_hat_from_models()`](https://wshi18.github.io/MetaHunt/reference/f_hat_from_models.md),
   including a self-contained `lm` onramp.
 - [`vignette("grid-weights")`](https://wshi18.github.io/MetaHunt/articles/grid-weights.md)
-  — choosing the `grid_weights` argument and the underlying $L^{2}(\mu)$
+  — choosing the `grid_weights` argument and the underlying $`L^2(\mu)`$
   inner product.
 - [`vignette("choosing-k-denoising")`](https://wshi18.github.io/MetaHunt/articles/choosing-k-denoising.md)
-  — picking the rank $K$ and the d-fSPA denoising knobs `(N, Delta)` via
-  elbow and CV diagnostics.
+  — picking the rank $`K`$ and the d-fSPA denoising knobs `(N, Delta)`
+  via elbow and CV diagnostics.
 - [`vignette("conformal-prediction")`](https://wshi18.github.io/MetaHunt/articles/conformal-prediction.md)
   — split, cross, and from-fit conformal bands around the target
   function.

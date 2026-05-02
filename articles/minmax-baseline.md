@@ -1,6 +1,7 @@
 # When to prefer minmax_regret
 
 ``` r
+
 library(MetaHunt)
 set.seed(1)
 ```
@@ -19,16 +20,17 @@ of true target inside the source convex hull. See Zhang, Huang, & Imai
 
 ## When to use which
 
-| Use [`metahunt()`](https://wshi18.github.io/MetaHunt/reference/metahunt.md)  | Use [`minmax_regret()`](https://wshi18.github.io/MetaHunt/reference/minmax_regret.md) |
-|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| You have many studies (`m` $\gtrsim 20$)                                     | Few studies and/or unreliable metadata                                                |
-| Study-level covariates `W` are informative                                   | No `W`, or `W` doesn’t predict heterogeneity                                          |
-| You want predictions for **specific** new populations characterized by `W_0` | You want a single **worst-case** aggregator across the source pool                    |
-| Random effects driven by latent structure                                    | Adversarial / robustness framing                                                      |
+| Use [`metahunt()`](https://wshi18.github.io/MetaHunt/reference/metahunt.md) | Use [`minmax_regret()`](https://wshi18.github.io/MetaHunt/reference/minmax_regret.md) |
+|----|----|
+| You have many studies (`m` $`\gtrsim 20`$) | Few studies and/or unreliable metadata |
+| Study-level covariates `W` are informative | No `W`, or `W` doesn’t predict heterogeneity |
+| You want predictions for **specific** new populations characterized by `W_0` | You want a single **worst-case** aggregator across the source pool |
+| Random effects driven by latent structure | Adversarial / robustness framing |
 
 ## A small standalone simulation
 
 ``` r
+
 m <- 30; G <- 20; K_true <- 3
 x <- seq(0, 1, length.out = G)
 basis <- rbind(sin(pi * x), cos(pi * x), x)
@@ -39,12 +41,14 @@ F_hat <- pi_true %*% basis + matrix(rnorm(m * G, sd = 0.05), m, G)
 ```
 
 ``` r
+
 W_new <- data.frame(w1 = 0, w2 = 0)
 ```
 
 ## Running `minmax_regret()`
 
 ``` r
+
 mm <- minmax_regret(F_hat)
 mm
 #> Minimax-regret aggregator (Zhang, Huang & Imai 2024)
@@ -67,6 +71,7 @@ To compare, fit
 and predict at the single new metadata row.
 
 ``` r
+
 fit <- metahunt(F_hat, W, K = K_true, dfspa_args = list(denoise = FALSE))
 f_pred <- predict(fit, newdata = W_new)
 ```
@@ -74,6 +79,7 @@ f_pred <- predict(fit, newdata = W_new)
 Now overlay the two predictions on the shared grid.
 
 ``` r
+
 plot(x, mm$prediction, type = "l", col = "tomato", lwd = 2,
      ylim = range(c(mm$prediction, f_pred[1, ])),
      xlab = "x", ylab = expression(tilde(f)(x)),
