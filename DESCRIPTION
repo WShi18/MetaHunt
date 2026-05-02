@@ -2,7 +2,7 @@ Package: MetaHunt
 Title: Privacy-Preserving Meta-Analysis via Low-Rank Basis Hunting
 Version: 0.1.0
 Authors@R: c(
-    person("Wenqi", "Shi", , "wenqi_shi@g.harvard.edu", role = c("aut", "cre")),
+    person("Wenqi", "Shi", , "wenqishi18@gmail.com", role = c("aut", "cre")),
     person("Kosuke", "Imai", , "imai@harvard.edu", role = "aut"),
     person("Yi", "Zhang", , "yizhang0017@gmail.com", role = "aut"))
 Description: Tools for privacy-preserving meta-analysis of function-valued
@@ -12,11 +12,14 @@ Description: Tools for privacy-preserving meta-analysis of function-valued
     Dirichlet regression of weights on study-level covariates, target
     prediction, and split/cross conformal prediction intervals. Operates
     on aggregate-level function evaluations, so individual-level data
-    from source studies are not required.
+    from source studies are not required. Methodology described in
+    Shi, Imai, and Zhang (<doi:10.48550/arXiv.2604.23847>).
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.0)
 Imports:
     quadprog,
     DirichletReg,

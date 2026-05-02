@@ -59,15 +59,16 @@ supplied, uniform weights \code{1 / G} are used.
 
 Denoising follows Jin (2024): for each study \code{i}, let
 \eqn{B_\Delta(\hat f^{(i)}) = \{j : \|\hat f^{(j)} - \hat f^{(i)}\| \le
-\Delta\}}. If \verb{|B_Δ(f̂^\{(i)\})| < N}, study \code{i} is discarded; otherwise
-\verb{f̂^\{(i)\}} is replaced by the average of the functions in \verb{B_Δ}.
+\Delta\}}. If \eqn{|B_\Delta(\hat f^{(i)})| < N}, study \code{i} is discarded;
+otherwise \eqn{\hat f^{(i)}} is replaced by the average of the functions
+in \eqn{B_\Delta}.
 After denoising, the functional SPA step iteratively selects, at each of
 the \code{K} iterations, the remaining function with the largest norm after
 projecting out the span of previously selected bases.
 
 Default tuning parameters follow the heuristics of the paper:
 \code{N = 0.5 * log(m)} and
-\verb{Delta = max_\{ij\} ||f̂^\{(i)\} - f̂^\{(j)\}|| / 10}.
+\eqn{\Delta = \max_{ij} \|\hat f^{(i)} - \hat f^{(j)}\| / 10}.
 }
 \examples{
 set.seed(1)

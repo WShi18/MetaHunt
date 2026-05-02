@@ -14,15 +14,16 @@
 #'
 #' Denoising follows Jin (2024): for each study `i`, let
 #' \eqn{B_\Delta(\hat f^{(i)}) = \{j : \|\hat f^{(j)} - \hat f^{(i)}\| \le
-#' \Delta\}}. If `|B_Δ(f̂^{(i)})| < N`, study `i` is discarded; otherwise
-#' `f̂^{(i)}` is replaced by the average of the functions in `B_Δ`.
+#' \Delta\}}. If \eqn{|B_\Delta(\hat f^{(i)})| < N}, study `i` is discarded;
+#' otherwise \eqn{\hat f^{(i)}} is replaced by the average of the functions
+#' in \eqn{B_\Delta}.
 #' After denoising, the functional SPA step iteratively selects, at each of
 #' the `K` iterations, the remaining function with the largest norm after
 #' projecting out the span of previously selected bases.
 #'
 #' Default tuning parameters follow the heuristics of the paper:
 #' `N = 0.5 * log(m)` and
-#' `Delta = max_{ij} ||f̂^{(i)} - f̂^{(j)}|| / 10`.
+#' \eqn{\Delta = \max_{ij} \|\hat f^{(i)} - \hat f^{(j)}\| / 10}.
 #'
 #' @param F_hat An `m`-by-`G` numeric matrix where row `i` is the evaluation
 #'   of the estimated function \eqn{\hat f^{(i)}} at `G` grid points.

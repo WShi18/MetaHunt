@@ -41,12 +41,14 @@ lists and reference data to the package's matrix inputs.
 Useful links:
 \itemize{
   \item \url{https://github.com/WShi18/MetaHunt}
+  \item \url{https://wshi18.github.io/MetaHunt/}
+  \item \url{https://arxiv.org/abs/2604.23847}
   \item Report bugs at \url{https://github.com/WShi18/MetaHunt/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Wenqi Shi \email{wenqi_shi@g.harvard.edu}
+\strong{Maintainer}: Wenqi Shi \email{wenqishi18@gmail.com}
 
 Authors:
 \itemize{

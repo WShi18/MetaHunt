@@ -9,3 +9,5 @@
 ^\.github$
 ^_pkgdown\.yml$
 ^docs$
+^CRAN_PREP_NOTES\.md$
+^logo$
