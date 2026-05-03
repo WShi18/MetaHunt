@@ -97,6 +97,9 @@ apply_wrapper <- function(F_mat, wrapper = NULL, grid_weights = NULL) {
           any(!is.finite(grid_weights)) || any(grid_weights < 0)) {
         stop("`grid_weights` must be a length-`ncol(F_mat)` non-negative numeric vector.")
       }
+      if (sum(grid_weights) <= 0) {
+        stop("`grid_weights` must sum to a positive value.")
+      }
     }
     return(as.numeric(F_mat %*% grid_weights) / sum(grid_weights))
   }

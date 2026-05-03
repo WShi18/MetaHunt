@@ -89,7 +89,14 @@ project_to_simplex <- function(F_hat, bases, grid_weights = NULL,
     sol  <- quadprog::solve.QP(Dmat = Dmat, dvec = dvec,
                                Amat = Amat, bvec = bvec, meq = 1L)
     pi_i <- pmax(sol$solution, 0)
-    pi_hat[i, ] <- pi_i / sum(pi_i)
+    s <- sum(pi_i)
+    if (s <= 0) {
+      warning("project_to_simplex(): solver returned all-zero weights for row ",
+              i, "; falling back to uniform weights.", call. = FALSE)
+      pi_hat[i, ] <- 1 / K
+    } else {
+      pi_hat[i, ] <- pi_i / s
+    }
   }
   pi_hat
 }

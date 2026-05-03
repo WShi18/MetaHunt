@@ -212,10 +212,18 @@ cv_error_curve <- function(F_hat, W, K_range = NULL, n_folds = 5L,
                     paste0("  ", failures, collapse = "\n")))
   }
 
-  cv_error <- rowMeans(fold_errors, na.rm = TRUE)
-  cv_sd    <- apply(fold_errors, 1, stats::sd, na.rm = TRUE)
   n_ok     <- rowSums(!is.na(fold_errors))
+  cv_error <- ifelse(n_ok > 0L, rowMeans(fold_errors, na.rm = TRUE), NA_real_)
+  cv_sd    <- ifelse(n_ok > 1L, apply(fold_errors, 1, stats::sd, na.rm = TRUE),
+                     NA_real_)
   cv_se    <- ifelse(n_ok > 1L, cv_sd / sqrt(n_ok), NA_real_)
+
+  if (any(n_ok == 0L)) {
+    warning(sprintf(
+      "K = %s had no successful folds; cv_error and cv_se reported as NA.",
+      paste(K_range[n_ok == 0L], collapse = ", ")
+    ), call. = FALSE)
+  }
 
   out <- data.frame(K = K_range, cv_error = cv_error, cv_se = cv_se)
   attr(out, "fold_errors") <- fold_errors

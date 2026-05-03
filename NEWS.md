@@ -1,4 +1,4 @@
-# MetaHunt 0.1.0 (2026-04-28)
+# MetaHunt 0.1.0
 
 Initial public release.
 
