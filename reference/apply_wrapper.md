@@ -40,11 +40,11 @@ A length-`n` numeric vector of scalar summaries.
 ## Examples
 
 ``` r
-F <- matrix(1:12, nrow = 3, byrow = TRUE)  # 3 "functions" on a 4-point grid
-apply_wrapper(F)                            # row means (uniform grid weights)
+F_mat <- matrix(1:12, nrow = 3, byrow = TRUE)  # 3 "functions" on a 4-point grid
+apply_wrapper(F_mat)                            # row means (uniform grid weights)
 #> [1]  2.5  6.5 10.5
-apply_wrapper(F, wrapper = max)             # row maxes
+apply_wrapper(F_mat, wrapper = max)             # row maxes
 #> [1]  4  8 12
-apply_wrapper(F, wrapper = function(f) f[2]) # point evaluation at grid idx 2
+apply_wrapper(F_mat, wrapper = function(f) f[2]) # point evaluation at grid idx 2
 #> [1]  2  6 10
 ```
