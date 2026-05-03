@@ -1,4 +1,4 @@
-# MetaHunt
+# MetaHunt <a href="https://wshi18.github.io/MetaHunt/"><img src="man/figures/logo.png" align="right" height="138" alt="MetaHunt website" /></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/WShi18/MetaHunt/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/WShi18/MetaHunt/actions/workflows/R-CMD-check.yaml)

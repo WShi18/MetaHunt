@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 693" width="300" height="346">
+  <title>MetaHunt v01a-i-D-6 — Curvier rotated-quadratic top arm + thicker curves</title>
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2C078"/>
+      <stop offset="1" stop-color="#E27D60"/>
+    </linearGradient>
+  </defs>
+
+  <polygon points="300,8 593,176 593,517 300,685 7,517 7,176" fill="#FBF4E6" stroke="#3B2F2F" stroke-width="10" stroke-linejoin="round"/>
+
+  <path d="M150,440 Q300,348 450,440" stroke="#A0522D" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <circle cx="150" cy="440" r="6" fill="#A0522D" stroke="#3B2F2F" stroke-width="2.5"/>
+  <circle cx="450" cy="440" r="6" fill="#A0522D" stroke="#3B2F2F" stroke-width="2.5"/>
+  <path d="M150,440 L300,460 L450,440" stroke="#3B2F2F" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <line x1="300" y1="460" x2="300" y2="340" stroke="#3B2F2F" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="300,325 293,340 307,340" fill="#3B2F2F" stroke="#3B2F2F" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="300" y1="460" x2="218" y2="372" stroke="#3B2F2F" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="208,361 215,375 222,368" fill="#3B2F2F" stroke="#3B2F2F" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="300" y1="460" x2="382" y2="372" stroke="#3B2F2F" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="392,361 385,375 378,368" fill="#3B2F2F" stroke="#3B2F2F" stroke-width="2" stroke-linejoin="round"/>
+
+  <polygon points="300,460 294,478 306,478" fill="#E27D60" stroke="#3B2F2F" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="300,460 285,475 292,464" fill="#E27D60" stroke="#3B2F2F" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="300,460 315,475 308,464" fill="#E27D60" stroke="#3B2F2F" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="300" cy="460" r="3.5" fill="#3B2F2F"/>
+
+  <polygon points="300,110 430,320 170,320" fill="url(#g1)" stroke="#3B2F2F" stroke-width="8" stroke-linejoin="round"/>
+
+  <!-- 7 data points scattered inside the triangle -->
+  <g fill="#3B2F2F">
+    <circle cx="300" cy="175" r="6"/>
+    <circle cx="260" cy="225" r="6"/>
+    <circle cx="340" cy="235" r="6"/>
+    <circle cx="300" cy="250" r="6"/>
+    <circle cx="235" cy="285" r="6"/>
+    <circle cx="370" cy="290" r="6"/>
+    <circle cx="305" cy="295" r="6"/>
+  </g>
+
+  <!-- LAYERED multi-color bullseyes at the three vertices -->
+  <g>
+    <circle cx="300" cy="110" r="22" fill="#FBF4E6" stroke="#3B2F2F" stroke-width="2.5"/>
+    <circle cx="300" cy="110" r="17" fill="#3B2F2F"/>
+    <circle cx="300" cy="110" r="13" fill="#FBF4E6"/>
+    <circle cx="300" cy="110" r="9"  fill="#2A5F6F"/>
+    <circle cx="300" cy="110" r="5"  fill="#FBF4E6"/>
+    <circle cx="300" cy="110" r="2"  fill="#3B2F2F"/>
+
+    <circle cx="170" cy="320" r="22" fill="#FBF4E6" stroke="#3B2F2F" stroke-width="2.5"/>
+    <circle cx="170" cy="320" r="17" fill="#3B2F2F"/>
+    <circle cx="170" cy="320" r="13" fill="#FBF4E6"/>
+    <circle cx="170" cy="320" r="9"  fill="#2A5F6F"/>
+    <circle cx="170" cy="320" r="5"  fill="#FBF4E6"/>
+    <circle cx="170" cy="320" r="2"  fill="#3B2F2F"/>
+
+    <circle cx="430" cy="320" r="22" fill="#FBF4E6" stroke="#3B2F2F" stroke-width="2.5"/>
+    <circle cx="430" cy="320" r="17" fill="#3B2F2F"/>
+    <circle cx="430" cy="320" r="13" fill="#FBF4E6"/>
+    <circle cx="430" cy="320" r="9"  fill="#2A5F6F"/>
+    <circle cx="430" cy="320" r="5"  fill="#FBF4E6"/>
+    <circle cx="430" cy="320" r="2"  fill="#3B2F2F"/>
+  </g>
+
+  <!-- BASIS-FUNCTION CURVES, stroke 3 -->
+  <g fill="none" stroke="#2A5F6F" stroke-width="3" stroke-linecap="round">
+    <!-- TOP vertex: more curvy rotated quadratic - bigger vertical sweep before the bend -->
+    <path d="M300,110 Q300,70 340,55"/>
+    <!-- LEFT vertex: line, going down-left -->
+    <line x1="170" y1="320" x2="120" y2="370"/>
+    <!-- RIGHT vertex: sine, going right (3 humps) -->
+    <path d="M430,320 Q442,308 454,320 T478,320 T502,320"/>
+  </g>
+
+  <text x="300" y="540" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="800" fill="#3B2F2F" letter-spacing="2">MetaHunt</text>
+</svg>
