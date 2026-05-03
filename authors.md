@@ -11,16 +11,17 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/WShi18/MetaHunt/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/WShi18/MetaHunt/blob/main/inst/CITATION)
 
-Shi W, Imai K, Zhang Y (2026). *MetaHunt: Privacy-Preserving
-Meta-Analysis via Low-Rank Basis Hunting*. R package version 0.1.0,
-<https://github.com/WShi18/MetaHunt>.
+Shi, W., Imai, K., and Zhang, Y. (2026). Privacy-preserving
+Meta-analysis through Low-Rank Basis Hunting. arXiv preprint
+arXiv:2604.23847. https://doi.org/10.48550/arXiv.2604.23847
 
-    @Manual{,
-      title = {MetaHunt: Privacy-Preserving Meta-Analysis via Low-Rank Basis Hunting},
+    @Article{,
+      title = {Privacy-preserving Meta-analysis through Low-Rank Basis Hunting},
       author = {Wenqi Shi and Kosuke Imai and Yi Zhang},
+      journal = {arXiv preprint arXiv:2604.23847},
       year = {2026},
-      note = {R package version 0.1.0},
-      url = {https://github.com/WShi18/MetaHunt},
+      url = {https://arxiv.org/abs/2604.23847},
+      doi = {10.48550/arXiv.2604.23847},
     }
