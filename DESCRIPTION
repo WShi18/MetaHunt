@@ -6,9 +6,9 @@ Authors@R: c(
     person("Kosuke", "Imai", , "imai@harvard.edu", role = "aut"),
     person("Yi", "Zhang", , "yizhang0017@gmail.com", role = "aut"))
 Description: Tools for privacy-preserving meta-analysis of function-valued
-    quantities across heterogeneous studies. Implements the MetaHunt
-    pipeline, including the denoised functional Successive Projection
-    Algorithm (d-fSPA) for basis hunting, constrained weight estimation,
+    quantities across heterogeneous studies. Implements the 'MetaHunt'
+    pipeline, including the denoised functional 'Successive Projection
+    Algorithm' ('d-fSPA') for basis hunting, constrained weight estimation,
     Dirichlet regression of weights on study-level covariates, target
     prediction, and split/cross conformal prediction intervals. Operates
     on aggregate-level function evaluations, so individual-level data
