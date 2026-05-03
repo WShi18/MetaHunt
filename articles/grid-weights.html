@@ -184,7 +184,9 @@ attention to the right half of the grid when ranking which study is the
 <span>  col  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span><span class="op">)</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"x"</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="st">"first recovered basis"</span>,</span>
-<span>  main <span class="op">=</span> <span class="st">"Recovered first-vertex basis under uniform vs. target-weighted L²(μ)"</span></span>
+<span>  main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span></span>
+<span>    <span class="st">"Recovered first-vertex basis under uniform vs. target-weighted "</span> <span class="op">~</span> <span class="va">L</span><span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="va">mu</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fl">0.5</span>, lty <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"grey60"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>,</span>

@@ -127,7 +127,9 @@ matplot(
   col  = c("#0072B2", "#D55E00"),
   xlab = "x",
   ylab = "first recovered basis",
-  main = "Recovered first-vertex basis under uniform vs. target-weighted L²(μ)"
+  main = expression(
+    "Recovered first-vertex basis under uniform vs. target-weighted " ~ L^2 * (mu)
+  )
 )
 abline(v = 0.5, lty = 2, col = "grey60")
 legend("topright",
