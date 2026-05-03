@@ -169,6 +169,7 @@ dfspa <- function(F_hat, K, grid_weights = NULL,
       N                = N,
       Delta            = Delta,
       K                = K,
+      m                = m,
       call             = call
     ),
     class = "dfspa"
@@ -178,8 +179,7 @@ dfspa <- function(F_hat, K, grid_weights = NULL,
 #' @export
 print.dfspa <- function(x, ...) {
   cat("d-fSPA basis hunting result\n")
-  cat("  studies kept after denoising:", length(x$kept),
-      "of", nrow(x$F_denoised) + max(0L, length(x$kept) - nrow(x$F_denoised)), "\n")
+  cat("  studies kept after denoising:", length(x$kept), "of", x$m, "\n")
   cat("  K (bases recovered):         ", x$K, "\n")
   cat("  selected study indices:      ", paste(x$original_indices, collapse = ", "), "\n")
   if (is.finite(x$N))     cat("  N:                           ", signif(x$N, 4), "\n")

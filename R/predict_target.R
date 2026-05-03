@@ -77,10 +77,10 @@ predict_target <- function(dfspa_fit, weight_model, W_new) {
 #' @return A length-`n` numeric vector of scalar summaries.
 #'
 #' @examples
-#' F <- matrix(1:12, nrow = 3, byrow = TRUE)  # 3 "functions" on a 4-point grid
-#' apply_wrapper(F)                            # row means (uniform grid weights)
-#' apply_wrapper(F, wrapper = max)             # row maxes
-#' apply_wrapper(F, wrapper = function(f) f[2]) # point evaluation at grid idx 2
+#' F_mat <- matrix(1:12, nrow = 3, byrow = TRUE)  # 3 "functions" on a 4-point grid
+#' apply_wrapper(F_mat)                            # row means (uniform grid weights)
+#' apply_wrapper(F_mat, wrapper = max)             # row maxes
+#' apply_wrapper(F_mat, wrapper = function(f) f[2]) # point evaluation at grid idx 2
 #'
 #' @export
 apply_wrapper <- function(F_mat, wrapper = NULL, grid_weights = NULL) {
