@@ -30,9 +30,9 @@ of the weighted mean with respect to \code{grid_weights} (which coincides with
 \eqn{\int f\,d\mu} when \code{grid_weights} represents \eqn{\mu}).
 }
 \examples{
-F <- matrix(1:12, nrow = 3, byrow = TRUE)  # 3 "functions" on a 4-point grid
-apply_wrapper(F)                            # row means (uniform grid weights)
-apply_wrapper(F, wrapper = max)             # row maxes
-apply_wrapper(F, wrapper = function(f) f[2]) # point evaluation at grid idx 2
+F_mat <- matrix(1:12, nrow = 3, byrow = TRUE)  # 3 "functions" on a 4-point grid
+apply_wrapper(F_mat)                            # row means (uniform grid weights)
+apply_wrapper(F_mat, wrapper = max)             # row maxes
+apply_wrapper(F_mat, wrapper = function(f) f[2]) # point evaluation at grid idx 2
 
 }
