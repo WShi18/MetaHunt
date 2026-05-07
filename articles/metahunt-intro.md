@@ -215,7 +215,7 @@ W_new <- data.frame(w1 = c(0, 1, -1), w2 = c(0, -0.5, 1),
 f_pred <- predict(fit, newdata = W_new)
 dim(f_pred)
 #> [1]  3 40
-par(mar = c(4, 4.5, 3, 1))
+oldpar <- par(mar = c(4, 4.5, 3, 1))
 matplot(x, t(f_pred), type = "l", lty = 1,
         col = c("#0072B2", "#D55E00", "#009E73"),
         xlab = "x", ylab = expression(tilde(f)(x)),
@@ -225,6 +225,11 @@ legend("topright", legend = rownames(W_new),
 ```
 
 ![](metahunt-intro_files/figure-html/predict-1.png)
+
+``` r
+
+par(oldpar)
+```
 
 Pass a `wrapper` for a scalar summary per target (an ATE under uniform
 grid weights):

@@ -60,8 +60,8 @@ mm
 #>     source 15: q = 0.5000
 #>     source 26: q = 0.5000
 #>     source 10: q = 0.0000
-#>     source 17: q = 0.0000
-#>     source 14: q = 0.0000
+#>     source 18: q = 0.0000
+#>     source 12: q = 0.0000
 ```
 
 ## Visual comparison: `minmax_regret` vs `metahunt`

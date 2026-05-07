@@ -218,7 +218,7 @@ data.frame(prediction = res$prediction,
            lower      = res$lower,
            upper      = res$upper)
 #>   prediction lower upper
-#> 1 -0.8307973  -Inf   Inf
+#> 1  -0.830792  -Inf   Inf
 ```
 
 With only 8 sites in this realistic example, an empirical-coverage check
