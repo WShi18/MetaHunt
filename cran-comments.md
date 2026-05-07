@@ -1,3 +1,14 @@
+## Resubmission
+
+This is a resubmission. In response to Benjamin Altmann's review, we have:
+
+* Removed single quotes around the algorithm name "Successive Projection
+  Algorithm" and its acronym "d-fSPA" in the Description field. Only the
+  package name 'MetaHunt' remains single-quoted.
+* In `vignettes/metahunt-intro.Rmd` (which generates `inst/doc/metahunt-intro.R`),
+  saved `par()` before modifying it (`oldpar <- par(mar = c(...))`) and
+  restored it after the affected plot (`par(oldpar)`).
+
 ## Test environments
 
 * Local: macOS Tahoe 26.2, R 4.6.0 (arm64)
